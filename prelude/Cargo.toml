@@ -6,4 +6,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+console_error_panic_hook = "0.1.7"
+console_log = "0.2.0"
 prelude_2021 = { git = "https://github.com/mokomull/adventofcode_2021", package = "prelude" }

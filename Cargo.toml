@@ -1,5 +1,5 @@
 [workspace]
-members=["prelude"]
+members=["day_*", "prelude"]
 
 [profile.release]
 debug = true
