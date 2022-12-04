@@ -1,3 +1,4 @@
+use prelude::*;
 use prelude::log::debug;
 use wasm_bindgen::prelude::*;
 
@@ -38,5 +39,11 @@ impl Solution {
             .map(|elf| elf.iter().sum())
             .max()
             .expect("there weren't any elves?")
+    }
+
+    pub fn part2(&self) -> u64 {
+        let mut calories = self.elves.iter().map(|elf| elf.iter().sum()).collect_vec();
+        calories.sort_by_key(|&cal| std::cmp::Reverse(cal));
+        calories.iter().take(3).sum()
     }
 }
