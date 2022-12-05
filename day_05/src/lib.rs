@@ -41,9 +41,23 @@ impl Solution {
 
         debug!("initial stacks: {:x?}", stacks);
 
+        let steps = lines[separator_index + 1..]
+            .iter()
+            .map(|line| {
+                let split = line.split(' ').collect_vec();
+                (
+                    split[1].parse().expect("count"),
+                    split[3].parse().expect("from"),
+                    split[5].parse().expect("to"),
+                )
+            })
+            .collect();
+
+        debug!("steps: {:?}", steps);
+
         Solution {
             initial: stacks,
-            steps: unimplemented!(),
+            steps,
         }
     }
 }
