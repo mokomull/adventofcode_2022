@@ -78,4 +78,21 @@ impl Solution {
             .collect_vec();
         String::from_utf8(result).expect("invalid UTF-8 somehow!")
     }
+
+    pub fn part2(&self) -> String {
+        let mut stacks = self.initial.clone();
+
+        for &(count, from, to) in &self.steps {
+            let from = &mut stacks[from - 1];
+            let mut containers = from.split_off(from.len() - count);
+            stacks[to - 1].append(&mut containers);
+        }
+
+        let result = stacks
+            .iter()
+            .map(|stack| stack.last().expect("empty stack is a surprise"))
+            .copied()
+            .collect_vec();
+        String::from_utf8(result).expect("invalid UTF-8 somehow!")
+    }
 }
