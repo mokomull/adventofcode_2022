@@ -83,8 +83,7 @@ impl Solution {
         let mut stacks = self.initial.clone();
 
         for &(count, from, to) in &self.steps {
-            let from = &mut stacks[from - 1];
-            let mut containers = from.split_off(from.len() - count);
+            let mut containers = stacks[from - 1].split_off(stacks[from - 1].len() - count);
             stacks[to - 1].append(&mut containers);
         }
 
