@@ -24,9 +24,12 @@ impl Solution {
             .filter(|word| !word.is_empty())
             .count();
         let mut stacks = vec![vec![]; stack_count];
-        for line in lines[..separator_index - 2].iter().rev() {
+        for line in lines[..=separator_index - 2].iter().rev() {
+            debug!("parsing line {:?}", line);
             for stack_index in 0..stack_count {
-                match line.as_bytes().get(stack_index * 4 + 1) {
+                let container = line.as_bytes().get(stack_index * 4 + 1);
+                debug!("found maybe a container: {:x?}", container);
+                match container {
                     None => continue,
                     Some(c @ b'A'..=b'Z') => {
                         stacks[stack_index].push(*c);
@@ -36,7 +39,7 @@ impl Solution {
             }
         }
 
-        debug!("initial stacks: {:?}", stacks);
+        debug!("initial stacks: {:x?}", stacks);
 
         Solution {
             initial: stacks,
