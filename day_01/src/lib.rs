@@ -1,5 +1,5 @@
-use prelude::*;
 use prelude::log::debug;
+use prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
