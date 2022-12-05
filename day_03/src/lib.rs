@@ -49,4 +49,20 @@ impl Solution {
             })
             .sum()
     }
+
+    pub fn part2(&self) -> u64 {
+        self.rucksacks
+            .iter()
+            .map(|(first, second)| first.iter().chain(second.iter()).collect::<HashSet<_>>())
+            .tuples()
+            .map(|(elf, alf, ulf)| {
+                let all = elf.intersection(&alf).copied().collect::<HashSet<_>>();
+                let all = all.intersection(&ulf).copied().collect_vec();
+                debug!("all: {:?}", all);
+                assert_eq!(all.len(), 1);
+
+                priority(*all[0])
+            })
+            .sum()
+    }
 }
