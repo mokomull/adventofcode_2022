@@ -60,4 +60,22 @@ impl Solution {
             steps,
         }
     }
+
+    pub fn part1(&self) -> String {
+        let mut stacks = self.initial.clone();
+
+        for &(count, from, to) in &self.steps {
+            for _ in 0..count {
+                let container = stacks[from - 1].pop().expect("ran out of containers!");
+                stacks[to - 1].push(container);
+            }
+        }
+
+        let result = stacks
+            .iter()
+            .map(|stack| stack.last().expect("empty stack is a surprise"))
+            .copied()
+            .collect_vec();
+        String::from_utf8(result).expect("invalid UTF-8 somehow!")
+    }
 }
