@@ -3,8 +3,9 @@ use prelude::*;
 use std::cmp::Ordering::*;
 use wasm_bindgen::prelude::*;
 use Choice::*;
+use RoundEnd::*;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 enum Choice {
     Rock,
     Paper,
@@ -40,6 +41,51 @@ impl TryFrom<&str> for Choice {
     }
 }
 
+impl Choice {
+    fn shape(&self) -> i64 {
+        match self {
+            Rock => 1,
+            Paper => 2,
+            Scissors => 3,
+        }
+    }
+}
+
+enum RoundEnd {
+    Lose,
+    Draw,
+    Win,
+}
+
+// complete hack to convert already-parsed X, Y, Z into the desired round result for part 2
+impl From<&Choice> for RoundEnd {
+    fn from(choice: &Choice) -> Self {
+        match choice {
+            Rock => Lose,
+            Paper => Draw,
+            Scissors => Win,
+        }
+    }
+}
+
+impl RoundEnd {
+    fn against(&self, opponent: &Choice) -> Choice {
+        match self {
+            Draw => opponent.clone(),
+            Lose => match opponent {
+                Rock => Scissors,
+                Paper => Rock,
+                Scissors => Paper,
+            },
+            Win => match opponent {
+                Rock => Paper,
+                Paper => Scissors,
+                Scissors => Rock,
+            },
+        }
+    }
+}
+
 #[wasm_bindgen]
 pub struct Solution {
     strategy_guide: Vec<(Choice, Choice)>,
@@ -69,11 +115,7 @@ impl Solution {
         self.strategy_guide
             .iter()
             .map(|(opponent, me)| {
-                let shape = match me {
-                    Rock => 1,
-                    Paper => 2,
-                    Scissors => 3,
-                };
+                let shape = me.shape();
 
                 let result = match me.cmp(opponent) {
                     Less => 0,
@@ -84,6 +126,24 @@ impl Solution {
                 debug!("{:?}", (shape, result));
 
                 shape + result
+            })
+            .sum()
+    }
+
+    pub fn part2(&self) -> i64 {
+        self.strategy_guide
+            .iter()
+            .map(|(opponent, me)| {
+                let round_end = RoundEnd::from(me);
+                let me = round_end.against(opponent);
+
+                let result = match round_end {
+                    Lose => 0,
+                    Draw => 3,
+                    Win => 6,
+                };
+
+                me.shape() + result
             })
             .sum()
     }
