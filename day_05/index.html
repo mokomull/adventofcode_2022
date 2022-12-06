@@ -7,7 +7,7 @@
         document.getElementById("runbutton").addEventListener("click", function() {
             var solution = Solution.new(document.getElementById("input").value);
 
-            solution.render(document.getElementById("target"));
+            solution.render(document, document.getElementById("target"));
             document.getElementById("part1").innerText = solution.part1();
             document.getElementById("part2").innerText = solution.part2();
         })

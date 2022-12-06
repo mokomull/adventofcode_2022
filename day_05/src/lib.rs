@@ -1,7 +1,7 @@
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
-use web_sys::{HtmlDivElement, Text};
+use wasm_bindgen::{prelude::*, JsCast};
+use web_sys::{Document, HtmlDivElement, HtmlElement, Text};
 
 #[wasm_bindgen]
 pub struct Solution {
@@ -97,9 +97,39 @@ impl Solution {
         String::from_utf8(result).expect("invalid UTF-8 somehow!")
     }
 
-    pub fn render(&self, target: &HtmlDivElement) -> Result<(), JsValue> {
-        let text = Text::new_with_data("roflcopter")?;
-        target.append_child(&text)?;
+    pub fn render(&self, document: Document, target: &HtmlDivElement) -> Result<(), JsValue> {
+        while let Some(child) = target.first_child() {
+            let _ = target.remove_child(&child); // if somehow the child already got removed, not my problem!
+        }
+
+        let mut crates = HashMap::new();
+
+        for (stack_id, stack) in self.initial.iter().enumerate() {
+            for (crate_height, &krate) in stack.iter().enumerate() {
+                let div = document.create_element("div")?.dyn_into::<HtmlElement>()?;
+                let span = document.create_element("span")?;
+                div.append_child(&span)?;
+
+                let crate_name_utf8 = &[krate];
+                let crate_name = std::str::from_utf8(crate_name_utf8)
+                    .map_err(|e| format!("somehow the crate did not have a UTF-8 name: {:?}", e))?;
+
+                let text = Text::new_with_data(crate_name)?;
+                span.append_child(&text)?;
+
+                target.append_child(&div)?;
+
+                let style = div.style();
+                style.set_property("--stack", &stack_id.to_string())?;
+                style.set_property("--index", &crate_height.to_string())?;
+
+                if let Some(_other) = crates.insert(krate, div) {
+                    return Err(
+                        format!("crate named {:?} appeared multiple times", crate_name).into(),
+                    );
+                }
+            }
+        }
 
         Ok(())
     }
