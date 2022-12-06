@@ -9,5 +9,12 @@ edition = "2021"
 prelude = { path = "../prelude" }
 wasm-bindgen = "0.2.83"
 
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "HtmlDivElement",
+    "Text",
+]
+
 [lib]
 crate-type = ["cdylib", "rlib"]

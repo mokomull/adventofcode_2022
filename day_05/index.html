@@ -7,11 +7,35 @@
         document.getElementById("runbutton").addEventListener("click", function() {
             var solution = Solution.new(document.getElementById("input").value);
 
+            solution.render(document.getElementById("target"));
             document.getElementById("part1").innerText = solution.part1();
             document.getElementById("part2").innerText = solution.part2();
         })
 
     </script>
+    <style>
+        #target {
+            height: calc((var(--count) + 2) * 2em);
+            position: relative;
+        }
+
+        #target > div {
+            width: 2em;
+            height: 2em;
+            box-sizing: border-box;
+            border: 2px solid black;
+            text-align: center;
+
+            position: absolute;
+            top: calc((var(--count) + 1 - var(--index)) * 2em);
+            left: calc(var(--stack) * 2em);
+        }
+
+        #target > div > span {
+            vertical-align: middle;
+            line-height: 2em;
+        }
+    </style>
 </head>
 <body>
     <h1>lol</h1>
@@ -23,6 +47,12 @@
             <input id="runbutton" type="button" value="Run!">
         </p>
     </form>
+
+    <div id="target" style="--count: 5">
+        <div style="--stack: 0; --index: 0;"><span>M</span></div>
+        <div style="--stack: 1; --index: 4;"><span>D</span></div>
+        <div style="--stack: 2; --index: 2;"><span>C</span></div>
+    </div>
 
     <p>
         Part 1: <span id="part1"></span>

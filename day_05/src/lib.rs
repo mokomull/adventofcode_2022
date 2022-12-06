@@ -1,6 +1,7 @@
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::prelude::*;
+use web_sys::{HtmlDivElement, Text};
 
 #[wasm_bindgen]
 pub struct Solution {
@@ -94,5 +95,12 @@ impl Solution {
             .copied()
             .collect_vec();
         String::from_utf8(result).expect("invalid UTF-8 somehow!")
+    }
+
+    pub fn render(&self, target: &HtmlDivElement) -> Result<(), JsValue> {
+        let text = Text::new_with_data("roflcopter")?;
+        target.append_child(&text)?;
+
+        Ok(())
     }
 }
