@@ -7,9 +7,11 @@
         document.getElementById("runbutton").addEventListener("click", function() {
             var solution = Solution.new(document.getElementById("input").value);
 
-            solution.render(document, document.getElementById("target"));
-            document.getElementById("part1").innerText = solution.part1();
-            document.getElementById("part2").innerText = solution.part2();
+            var part1 = solution.part1(document, document.getElementById("target"));
+            function tick() {
+                part1.tick(tick);
+            }
+            tick();
         })
 
     </script>
@@ -80,10 +82,5 @@
         <div style="--stack: 2; --index: 2;"><span>C</span></div>
     </div>
 
-    <p>
-        Part 1: <span id="part1"></span>
-    </p>
-    <p>
-        Part 2: <span id="part2"></span>
-    </p>
+    <hr><!-- just here to visibly see that I set #target's height correctly -->
 </body>

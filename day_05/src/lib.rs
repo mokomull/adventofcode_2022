@@ -1,3 +1,6 @@
+use std::collections::VecDeque;
+
+use js_sys::Function;
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::{prelude::*, JsCast};
@@ -62,45 +65,29 @@ impl Solution {
         }
     }
 
-    pub fn part1(&self) -> String {
+    fn count_tallest_part2(&self) -> usize {
         let mut stacks = self.initial.clone();
-
-        for &(count, from, to) in &self.steps {
-            for _ in 0..count {
-                let container = stacks[from - 1].pop().expect("ran out of containers!");
-                stacks[to - 1].push(container);
-            }
-        }
-
-        let result = stacks
-            .iter()
-            .map(|stack| stack.last().expect("empty stack is a surprise"))
-            .copied()
-            .collect_vec();
-        String::from_utf8(result).expect("invalid UTF-8 somehow!")
-    }
-
-    pub fn part2(&self) -> String {
-        let mut stacks = self.initial.clone();
+        let mut tallest = 0;
 
         for &(count, from, to) in &self.steps {
             let from = &mut stacks[from - 1];
             let mut containers = from.split_off(from.len() - count);
             stacks[to - 1].append(&mut containers);
+            tallest = std::cmp::max(tallest, stacks[to - 1].len());
         }
 
-        let result = stacks
-            .iter()
-            .map(|stack| stack.last().expect("empty stack is a surprise"))
-            .copied()
-            .collect_vec();
-        String::from_utf8(result).expect("invalid UTF-8 somehow!")
+        tallest
     }
 
-    pub fn render(&self, document: Document, target: &HtmlDivElement) -> Result<(), JsValue> {
+    pub fn part1(&self, document: Document, target: &HtmlDivElement) -> Result<Part1, JsValue> {
         while let Some(child) = target.first_child() {
             let _ = target.remove_child(&child); // if somehow the child already got removed, not my problem!
         }
+
+        let height = self.count_tallest_part2();
+        target
+            .style()
+            .set_property("--count", &height.to_string())?;
 
         let mut crates = HashMap::new();
 
@@ -130,6 +117,84 @@ impl Solution {
                 }
             }
         }
+
+        Ok(Part1 {
+            stacks: self.initial.clone(),
+            crate_divs: crates,
+            steps: self.steps.clone().into(),
+            current_crate: None,
+            current_count: 0,
+            current_from: 0,
+            current_to: 0,
+        })
+    }
+}
+
+#[wasm_bindgen]
+pub struct Part1 {
+    stacks: Vec<Vec<u8>>,
+    crate_divs: HashMap<u8, HtmlElement>,
+    steps: VecDeque<(usize, usize, usize)>,
+
+    current_crate: Option<HtmlElement>,
+    current_count: usize,
+    current_from: usize,
+    current_to: usize,
+}
+
+#[wasm_bindgen]
+impl Part1 {
+    pub fn tick(&mut self, callback: &Function) -> Result<(), JsValue> {
+        debug!(
+            "top: {} from {} to {}",
+            self.current_count, self.current_from, self.current_to
+        );
+        debug!("element is {:?}", self.current_crate);
+
+        if let Some(ref current_crate) = self.current_crate.take() {
+            current_crate.set_onanimationend(None);
+            let style = current_crate.style();
+
+            style.set_property("--stack", &style.get_property_value("--newStack")?)?;
+            style.set_property("--index", &style.get_property_value("--newIndex")?)?;
+            current_crate.set_class_name("");
+        }
+
+        if self.current_count == 0 {
+            let Some((count, from, to)) = self.steps.pop_front() else {
+                debug!("done!");
+                return Ok(());
+            };
+            self.current_count = count;
+            self.current_from = from;
+            self.current_to = to;
+            debug!(
+                "refreshed, will move {} from {} to {}",
+                self.current_count, self.current_from, self.current_to
+            );
+        }
+        self.current_count -= 1;
+
+        let moving = self.stacks[self.current_from - 1]
+            .pop()
+            .ok_or("empty stack")?;
+        self.stacks[self.current_to - 1].push(moving);
+
+        // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it copy the reference to the same object?
+        let moving_div = self
+            .crate_divs
+            .get(&moving)
+            .expect("tried to move a crate that isn't in the HashMap")
+            .clone();
+        let style = moving_div.style();
+        style.set_property("--newStack", &(self.current_to - 1).to_string())?;
+        style.set_property(
+            "--newIndex",
+            &(self.stacks[self.current_to - 1].len() - 1).to_string(),
+        )?;
+        moving_div.set_class_name("moving");
+        moving_div.set_onanimationend(Some(callback));
+        self.current_crate = Some(moving_div);
 
         Ok(())
     }
