@@ -15,22 +15,20 @@
     </script>
     <style>
         #target {
-            display: grid;
-            grid-auto-rows: 2em;
-            grid-auto-columns: 2em;
-            column-gap: 2px;
-            row-gap: 2px;
+            height: calc((var(--count) + 2) * 2em);
+            position: relative;
         }
 
         #target > div {
-            width: calc(2em);
-            height: calc(2em);
+            width: calc(2em - 2px);
+            height: calc(2em - 2px);
             box-sizing: border-box;
             border: 2px solid black;
             text-align: center;
 
-            grid-row: calc(var(--count) + 2 - var(--index));
-            grid-column: calc(var(--stack) + 1);
+            position: absolute;
+            top: calc((var(--count) + 1 - var(--index)) * 2em);
+            left: calc(var(--stack) * 2em);
         }
 
         #target > div > span {
@@ -40,18 +38,20 @@
 
         @keyframes crane {
             33% {
-                grid-row: 1;
-                grid-column: calc(var(--stack) + 1);
+                background-color: #500;
+                color: #fff;
+                top: 0;
+                left: calc(var(--stack) * 2em);
             }
 
             67% {
-                grid-row: 1;
-                grid-column: calc(var(--newStack) + 1);
+                top: 0;
+                left: calc(var(--newStack) * 2em);
             }
 
             to {
-                grid-row: calc(var(--count) + 2 - var(--newIndex));
-                grid-column: calc(var(--newStack) + 1);
+                top: calc((var(--count) + 1 - var(--newIndex)) * 2em);
+                left: calc(var(--newStack) * 2em);
             }
         }
 
