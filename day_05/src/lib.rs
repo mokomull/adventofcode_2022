@@ -158,6 +158,10 @@ impl Part1 {
             style.set_property("--stack", &style.get_property_value("--newStack")?)?;
             style.set_property("--index", &style.get_property_value("--newIndex")?)?;
             current_crate.set_class_name("");
+
+            // force reflow so that the just-completed animation will reset, in
+            // case we pick up the same crate later
+            current_crate.offset_height();
         }
 
         if self.current_count == 0 {
