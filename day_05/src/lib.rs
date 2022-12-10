@@ -79,7 +79,7 @@ impl Solution {
         tallest
     }
 
-    pub fn part1(&self, document: Document, target: &HtmlDivElement) -> Result<Part1, JsValue> {
+    pub fn render(&self, document: Document, target: &HtmlDivElement) -> Result<Renderer, JsValue> {
         while let Some(child) = target.first_child() {
             let _ = target.remove_child(&child); // if somehow the child already got removed, not my problem!
         }
@@ -119,11 +119,11 @@ impl Solution {
             }
         }
 
-        Ok(Part1 {
+        Ok(Renderer {
             stacks: self.initial.iter().map(Vec::len).collect(),
             crate_divs: crates,
             steps: self.steps.clone().into(),
-            current_crate: None,
+            currently_moving: vec![],
             current_count: 0,
             current_from: 0,
             current_to: 0,
@@ -132,27 +132,32 @@ impl Solution {
 }
 
 #[wasm_bindgen]
-pub struct Part1 {
+pub struct Renderer {
     stacks: Vec<usize>,                               // height of each stack
     crate_divs: HashMap<(usize, usize), HtmlElement>, // (stack id, height) => element representing a crate
     steps: VecDeque<(usize, usize, usize)>,
 
-    current_crate: Option<HtmlElement>,
+    currently_moving: Vec<HtmlElement>,
     current_count: usize,
     current_from: usize,
     current_to: usize,
 }
 
 #[wasm_bindgen]
-impl Part1 {
-    pub fn tick(&mut self, callback: &Function) -> Result<(), JsValue> {
+impl Renderer {
+    // despite all the storage of from/to being one-indexed, do_move is called with *zero*-indexed
+    // stack ids.
+    fn tick<F>(&mut self, mut do_move: F) -> Result<(), JsValue>
+    where
+        F: FnMut(&mut Self, usize, usize, usize) -> Result<Vec<HtmlElement>, JsValue>,
+    {
         debug!(
             "top: {} from {} to {}",
             self.current_count, self.current_from, self.current_to
         );
-        debug!("element is {:?}", self.current_crate);
+        debug!("element is {:?}", self.currently_moving);
 
-        if let Some(ref current_crate) = self.current_crate.take() {
+        for current_crate in self.currently_moving.drain(..) {
             current_crate.set_onanimationend(None);
             let style = current_crate.style();
 
@@ -178,35 +183,60 @@ impl Part1 {
                 self.current_count, self.current_from, self.current_to
             );
         }
+
+        self.currently_moving = do_move(
+            self,
+            self.current_count,
+            self.current_from - 1,
+            self.current_to - 1,
+        )?;
+
+        Ok(())
+    }
+
+    // from and to are *zero*-based stack ids
+    fn move_one_crate(
+        &mut self,
+        from: usize,
+        to: usize,
+        animation_callback: &Function,
+    ) -> Result<Vec<HtmlElement>, JsValue> {
         self.current_count -= 1;
 
-        self.stacks[self.current_from - 1] -= 1;
+        self.stacks[from] -= 1;
         // heights are zero-indexed, so take these snapshots while the lengths of both stacks are
         // already "one shorter"
-        let from_height = self.stacks[self.current_from - 1];
-        let to_height = self.stacks[self.current_to - 1];
-        self.stacks[self.current_to - 1] += 1;
+        let from_height = self.stacks[from];
+        let to_height = self.stacks[to];
+        self.stacks[to] += 1;
 
         let moving_div = self
             .crate_divs
-            .remove(&(self.current_from - 1, from_height))
+            .remove(&(from, from_height))
             .expect("tried to move a crate that isn't in the HashMap");
         let style = moving_div.style();
-        style.set_property("--newStack", &(self.current_to - 1).to_string())?;
+        style.set_property("--newStack", &to.to_string())?;
         style.set_property("--newIndex", &to_height.to_string())?;
         moving_div.set_class_name("moving");
-        moving_div.set_onanimationend(Some(callback));
+        moving_div.set_onanimationend(Some(animation_callback));
         // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it copy
         // the reference to the same object?
-        self.current_crate = Some(moving_div.clone());
         if self
             .crate_divs
-            .insert((self.current_to - 1, to_height), moving_div)
+            .insert((to, to_height), moving_div.clone())
             .is_some()
         {
             panic!("tried to reinsert a crate where another crate already exists");
         }
 
-        Ok(())
+        Ok(vec![moving_div])
+    }
+
+    pub fn tick_part1(&mut self, callback: &Function) -> Result<(), JsValue> {
+        self.tick(
+            move |this: &mut Self, _count, from, to| -> Result<Vec<HtmlElement>, JsValue> {
+                this.move_one_crate(from, to, callback)
+            },
+        )
     }
 }

@@ -7,9 +7,9 @@
         document.getElementById("part1button").addEventListener("click", function() {
             var solution = Solution.new(document.getElementById("input").value);
 
-            var part1 = solution.part1(document, document.getElementById("target"));
+            var part1 = solution.render(document, document.getElementById("target"));
             function tick() {
-                part1.tick(tick);
+                part1.tick_part1(tick);
             }
             tick();
         })
