@@ -195,47 +195,60 @@ impl Renderer {
     }
 
     // from and to are *zero*-based stack ids
-    fn move_one_crate(
+    fn move_crates(
         &mut self,
+        count: usize,
         from: usize,
         to: usize,
         animation_callback: &Function,
     ) -> Result<Vec<HtmlElement>, JsValue> {
-        self.current_count -= 1;
+        self.current_count -= count;
 
-        self.stacks[from] -= 1;
+        self.stacks[from] -= count;
         // heights are zero-indexed, so take these snapshots while the lengths of both stacks are
-        // already "one shorter"
+        // already at their shortest
         let from_height = self.stacks[from];
         let to_height = self.stacks[to];
-        self.stacks[to] += 1;
+        self.stacks[to] += count;
 
-        let moving_div = self
-            .crate_divs
-            .remove(&(from, from_height))
-            .expect("tried to move a crate that isn't in the HashMap");
-        let style = moving_div.style();
-        style.set_property("--newStack", &to.to_string())?;
-        style.set_property("--newIndex", &to_height.to_string())?;
-        moving_div.set_class_name("moving");
-        moving_div.set_onanimationend(Some(animation_callback));
-        // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it copy
-        // the reference to the same object?
-        if self
-            .crate_divs
-            .insert((to, to_height), moving_div.clone())
-            .is_some()
-        {
-            panic!("tried to reinsert a crate where another crate already exists");
+        let mut moving_divs = vec![];
+
+        for i in 0..count {
+            let moving_div = self
+                .crate_divs
+                .remove(&(from, from_height + i))
+                .expect("tried to move a crate that isn't in the HashMap");
+            let style = moving_div.style();
+            style.set_property("--newStack", &to.to_string())?;
+            style.set_property("--newIndex", &(to_height + i).to_string())?;
+            moving_div.set_class_name("moving");
+
+            // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it
+            // copy the reference to the same object?
+            if self
+                .crate_divs
+                .insert((to, (to_height + i)), moving_div.clone())
+                .is_some()
+            {
+                panic!("tried to reinsert a crate where another crate already exists");
+            }
+
+            moving_divs.push(moving_div);
         }
+        // only set the callback on *one* of the elements, and use that one as the indication to
+        // progress to the next animation
+        moving_divs
+            .get(0)
+            .expect("somehow didn't move any crates")
+            .set_onanimationend(Some(animation_callback));
 
-        Ok(vec![moving_div])
+        Ok(moving_divs)
     }
 
     pub fn tick_part1(&mut self, callback: &Function) -> Result<(), JsValue> {
         self.tick(
             move |this: &mut Self, _count, from, to| -> Result<Vec<HtmlElement>, JsValue> {
-                this.move_one_crate(from, to, callback)
+                this.move_crates(1, from, to, callback)
             },
         )
     }
