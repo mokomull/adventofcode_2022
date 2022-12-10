@@ -14,6 +14,15 @@
             tick();
         })
 
+        document.getElementById("part2button").addEventListener("click", function () {
+            var solution = Solution.new(document.getElementById("input").value);
+
+            var renderer = solution.render(document, document.getElementById("target"));
+            function tick() {
+                renderer.tick_part2(tick);
+            }
+            tick();
+        });
     </script>
     <style>
         #target {
@@ -80,6 +89,7 @@ move 1 from 1 to 2</textarea>
         </p>
         <p>
             <input id="part1button" type="button" value="Part 1!">
+            <input id="part2button" type="button" value="Part 2!">
         </p>
     </form>
 
