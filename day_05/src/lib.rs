@@ -110,16 +110,17 @@ impl Solution {
                 style.set_property("--stack", &stack_id.to_string())?;
                 style.set_property("--index", &crate_height.to_string())?;
 
-                if let Some(_other) = crates.insert(krate, div) {
-                    return Err(
-                        format!("crate named {:?} appeared multiple times", crate_name).into(),
+                if crates.insert((stack_id, crate_height), div).is_some() {
+                    panic!(
+                        "inserted stack_id {}, height {} into crates twice",
+                        stack_id, crate_height
                     );
                 }
             }
         }
 
         Ok(Part1 {
-            stacks: self.initial.clone(),
+            stacks: self.initial.iter().map(Vec::len).collect(),
             crate_divs: crates,
             steps: self.steps.clone().into(),
             current_crate: None,
@@ -132,8 +133,8 @@ impl Solution {
 
 #[wasm_bindgen]
 pub struct Part1 {
-    stacks: Vec<Vec<u8>>,
-    crate_divs: HashMap<u8, HtmlElement>,
+    stacks: Vec<usize>,                               // height of each stack
+    crate_divs: HashMap<(usize, usize), HtmlElement>, // (stack id, height) => element representing a crate
     steps: VecDeque<(usize, usize, usize)>,
 
     current_crate: Option<HtmlElement>,
@@ -179,26 +180,32 @@ impl Part1 {
         }
         self.current_count -= 1;
 
-        let moving = self.stacks[self.current_from - 1]
-            .pop()
-            .ok_or("empty stack")?;
-        self.stacks[self.current_to - 1].push(moving);
+        self.stacks[self.current_from - 1] -= 1;
+        // heights are zero-indexed, so take these snapshots while the lengths of both stacks are
+        // already "one shorter"
+        let from_height = self.stacks[self.current_from - 1];
+        let to_height = self.stacks[self.current_to - 1];
+        self.stacks[self.current_to - 1] += 1;
 
-        // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it copy the reference to the same object?
         let moving_div = self
             .crate_divs
-            .get(&moving)
-            .expect("tried to move a crate that isn't in the HashMap")
-            .clone();
+            .remove(&(self.current_from - 1, from_height))
+            .expect("tried to move a crate that isn't in the HashMap");
         let style = moving_div.style();
         style.set_property("--newStack", &(self.current_to - 1).to_string())?;
-        style.set_property(
-            "--newIndex",
-            &(self.stacks[self.current_to - 1].len() - 1).to_string(),
-        )?;
+        style.set_property("--newIndex", &to_height.to_string())?;
         moving_div.set_class_name("moving");
         moving_div.set_onanimationend(Some(callback));
-        self.current_crate = Some(moving_div);
+        // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it copy
+        // the reference to the same object?
+        self.current_crate = Some(moving_div.clone());
+        if self
+            .crate_divs
+            .insert((self.current_to - 1, to_height), moving_div)
+            .is_some()
+        {
+            panic!("tried to reinsert a crate where another crate already exists");
+        }
 
         Ok(())
     }
