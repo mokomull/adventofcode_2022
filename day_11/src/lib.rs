@@ -1,10 +1,13 @@
+use std::rc::Rc;
+
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::prelude::*;
 
+#[derive(Clone)]
 struct Monkey {
     items: Vec<u32>,
-    operation: Box<dyn Fn(u32) -> u32>,
+    operation: Rc<dyn Fn(u32) -> u32>,
     divisor: u32,
     true_target: usize,
     false_target: usize,
@@ -50,14 +53,14 @@ impl Solution {
                 .expect("unexpected EOF")
                 .strip_prefix("  Operation: new = old ")
                 .unwrap();
-            let operation: Box<dyn Fn(u32) -> u32> = if operation_str == "* old" {
-                Box::new(|old| old * old)
+            let operation: Rc<dyn Fn(u32) -> u32> = if operation_str == "* old" {
+                Rc::new(|old| old * old)
             } else if let Some(other) = operation_str.strip_prefix("* ") {
                 let other = other.parse::<u32>().unwrap();
-                Box::new(move |old| old * other)
+                Rc::new(move |old| old * other)
             } else if let Some(other) = operation_str.strip_prefix("+ ") {
                 let other = other.parse::<u32>().unwrap();
-                Box::new(move |old| old + other)
+                Rc::new(move |old| old + other)
             } else {
                 panic!("could not parse operation {:?}", operation_str);
             };
@@ -102,5 +105,32 @@ impl Solution {
         }
 
         Solution { monkeys }
+    }
+
+    pub fn part1(&self) -> u32 {
+        let mut monkeys = self.monkeys.clone();
+        let mut activity = vec![0; monkeys.len()];
+
+        for _round in 0..20 {
+            for i in 0..monkeys.len() {
+                for item in std::mem::take(&mut monkeys[i].items) {
+                    activity[i] += 1;
+
+                    let item = (monkeys[i].operation)(item);
+                    let item = item / 3;
+
+                    let target = if item % monkeys[i].divisor == 0 {
+                        monkeys[i].true_target
+                    } else {
+                        monkeys[i].false_target
+                    };
+
+                    monkeys[target].items.push(item);
+                }
+            }
+        }
+
+        activity.sort_by_key(|&i| std::cmp::Reverse(i));
+        activity.iter().take(2).product()
     }
 }
