@@ -253,9 +253,7 @@ impl Renderer {
         )
     }
 
-    pub fn tick_part2(&mut self, callback: &Function)-> Result<(), JsValue> {
-        self.tick(
-            move |this, count, from, to| this.move_crates(count, from, to, callback)
-        )
+    pub fn tick_part2(&mut self, callback: &Function) -> Result<(), JsValue> {
+        self.tick(move |this, count, from, to| this.move_crates(count, from, to, callback))
     }
 }
