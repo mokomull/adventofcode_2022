@@ -39,7 +39,7 @@ impl Solution {
             let monkey_id = line
                 .strip_prefix("Monkey ")
                 .expect("expected a monkey!")
-                .strip_suffix(":")
+                .strip_suffix(':')
                 .unwrap()
                 .parse::<usize>()
                 .unwrap();
