@@ -127,6 +127,7 @@ impl Solution {
             current_count: 0,
             current_from: 0,
             current_to: 0,
+            trigger_count: 0,
         })
     }
 }
@@ -141,6 +142,8 @@ pub struct Renderer {
     current_count: usize,
     current_from: usize,
     current_to: usize,
+
+    trigger_count: usize,
 }
 
 #[wasm_bindgen]
@@ -156,6 +159,16 @@ impl Renderer {
             self.current_count, self.current_from, self.current_to
         );
         debug!("element is {:?}", self.currently_moving);
+
+        self.trigger_count += 1;
+        if self.trigger_count < self.currently_moving.len() {
+            debug!(
+                "still waiting on {} elements to finish animation",
+                self.currently_moving.len() - self.trigger_count
+            );
+            return Ok(());
+        }
+        self.trigger_count = 0;
 
         for current_crate in self.currently_moving.drain(..) {
             current_crate.set_onanimationend(None);
@@ -223,6 +236,8 @@ impl Renderer {
             style.set_property("--newIndex", &(to_height + i).to_string())?;
             moving_div.set_class_name("moving");
 
+            moving_div.set_onanimationend(Some(animation_callback));
+
             // TODO: does a clone()d HtmlElement actually copy the JS-side DOM object?  Or does it
             // copy the reference to the same object?
             if self
@@ -237,10 +252,6 @@ impl Renderer {
         }
         // only set the callback on *one* of the elements, and use that one as the indication to
         // progress to the next animation
-        moving_divs
-            .get(0)
-            .expect("somehow didn't move any crates")
-            .set_onanimationend(Some(animation_callback));
 
         Ok(moving_divs)
     }
