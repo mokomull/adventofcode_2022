@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 #[derive(Debug)]
 enum Command {
     Cd(Component),
-    Ls(Vec<Entry>),
+    Ls(Vec<InputEntry>),
 }
 
 #[derive(Debug)]
@@ -16,14 +16,13 @@ enum Component {
 }
 
 #[derive(Debug)]
-enum Entry {
+enum InputEntry {
     File { size: u32, name: String },
     Directory(String),
 }
 
 use Command::*;
 use Component::*;
-use Entry::*;
 
 #[wasm_bindgen]
 pub struct Solution {
@@ -46,11 +45,13 @@ impl Solution {
                     let mut entries = vec![];
                     while let Some(entry) = lines.next_if(|&x| !x.starts_with("$")) {
                         if entry.starts_with("dir ") {
-                            entries.push(Directory(entry.strip_prefix("dir ").unwrap().to_owned()))
+                            entries.push(InputEntry::Directory(
+                                entry.strip_prefix("dir ").unwrap().to_owned(),
+                            ))
                         } else {
                             let (size, name) =
                                 entry.split_once(' ').expect("there should be a space");
-                            entries.push(File {
+                            entries.push(InputEntry::File {
                                 size: size.parse().expect("couldn't parse size"),
                                 name: name.to_owned(),
                             })
@@ -71,4 +72,89 @@ impl Solution {
 
         Self { commands }
     }
+
+    pub fn part1(&self) -> Result<u64, JsValue> {
+        debug!("{:#?}", build_tree(self.commands.iter())?);
+        Err("didn't get this far yet".into())
+    }
+}
+
+type Tree<'a> = HashMap<&'a str, TreeEntry<'a>>;
+
+#[derive(Debug)]
+enum TreeEntry<'a> {
+    File(u32),
+    Directory(Tree<'a>),
+}
+
+enum UpwardCd {
+    Parent,
+    Root,
+}
+
+fn build_tree<'a, I>(commands: I) -> Result<Tree<'a>, JsValue>
+where
+    I: Iterator<Item = &'a Command>,
+{
+    let mut tree = HashMap::new();
+    let mut it = commands.peekable();
+
+    while it.peek().is_some() {
+        // whether it was `cd ..` or `cd /` doesn't matter here, since we've already traversed all
+        // the way back to the root...
+        build_level(&mut it, &mut tree)?;
+    }
+
+    Ok(tree)
+}
+
+fn build_level<'a, I>(commands: &mut I, tree: &mut Tree<'a>) -> Result<UpwardCd, JsValue>
+where
+    I: Iterator<Item = &'a Command>,
+{
+    while let Some(command) = commands.next() {
+        match command {
+            Cd(Parent) => return Ok(UpwardCd::Parent),
+            Cd(Root) => return Ok(UpwardCd::Root),
+            Cd(Path(p)) => {
+                let subtree = tree.get_mut(p.as_str()).ok_or_else(|| {
+                    format!("tried to chdir to {:?} before it was seen by an ls", p)
+                })?;
+                match subtree {
+                    TreeEntry::Directory(t) => {
+                        // recursively build the next commands into this tree
+                        match build_level(commands, t)? {
+                            // if we got back here from a `cd ..`, then swallow it and keep
+                            // iterating through commands and their responses
+                            UpwardCd::Parent => (),
+                            // but if we got back because somewhere deep in the tree did a `cd /`,
+                            // then return all the way back up to the root build_tree().
+                            UpwardCd::Root => return Ok(UpwardCd::Root),
+                        }
+                    }
+                    TreeEntry::File(_) => {
+                        return Err(format!("tried to chdir into a file: {:?}", p).into())
+                    }
+                }
+            }
+            Ls(entries) => {
+                for entry in entries {
+                    match entry {
+                        InputEntry::File { size, name } => {
+                            tree.insert(name.as_str(), TreeEntry::File(*size));
+                        }
+                        InputEntry::Directory(name) => {
+                            // put a new empty subtree in its place, if one didn't already exist
+                            let TreeEntry::Directory(_) = tree.entry(name.as_str()).or_insert_with(|| TreeEntry::Directory(Tree::new())) else {
+                                return Err(format!("tried to replace a file with a directory: {:?}", name).into());
+                            };
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // when we're out of commands, then pretend we went all the way back up to the root to exit the whole thing
+    Ok(UpwardCd::Root)
 }
