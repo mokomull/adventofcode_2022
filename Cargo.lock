@@ -71,8 +71,10 @@ dependencies = [
 name = "day_05"
 version = "0.1.0"
 dependencies = [
+ "js-sys",
  "prelude 0.1.0",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
