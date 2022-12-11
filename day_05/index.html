@@ -8,8 +8,8 @@
             var solution = Solution.new(document.getElementById("input").value);
 
             var part1 = solution.render(document, document.getElementById("target"));
-            function tick(generation) {
-                part1.tick_part1(generation, tick);
+            function tick() {
+                part1.tick_part1(tick);
             }
             tick();
         })
@@ -18,11 +18,8 @@
             var solution = Solution.new(document.getElementById("input").value);
 
             var renderer = solution.render(document, document.getElementById("target"));
-            function tick(generation, e) {
-                if (typeof e != "undefined") {
-                    console.debug("firing for", e.target.innerHTML);
-                }
-                renderer.tick_part2(generation, tick);
+            function tick() {
+                renderer.tick_part2(tick);
             }
             tick();
         });
