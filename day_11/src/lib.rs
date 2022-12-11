@@ -133,4 +133,39 @@ impl Solution {
         activity.sort_by_key(|&i| std::cmp::Reverse(i));
         activity.iter().take(2).product()
     }
+
+    pub fn part2(&self) -> u32 {
+        let mut monkeys = self.monkeys.clone();
+        let mut activity = vec![0; monkeys.len()];
+
+        // we'll do all our math modulo the product of all the divisors, since they seem to be small
+        // primes.
+        //
+        // TODO: find the theorem that says we can do math modulo p1*p2*p3*...
+        let modulus: u32 = self.monkeys.iter().map(|i| i.divisor).product();
+
+        for _round in 0..20 {
+            for i in 0..monkeys.len() {
+                for item in std::mem::take(&mut monkeys[i].items) {
+                    activity[i] += 1;
+
+                    let item = (monkeys[i].operation)(item);
+                    let item = item % modulus;
+
+                    let target = if item % monkeys[i].divisor == 0 {
+                        monkeys[i].true_target
+                    } else {
+                        monkeys[i].false_target
+                    };
+
+                    monkeys[target].items.push(item);
+                }
+            }
+
+            debug!("activity: {:?}", activity);
+        }
+
+        activity.sort_by_key(|&i| std::cmp::Reverse(i));
+        activity.iter().take(2).product()
+    }
 }
