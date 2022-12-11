@@ -1,14 +1,17 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use prelude::log::debug;
+use prelude::*;
+use wasm_bindgen::prelude::*;
+
+struct Monkey {}
+
+#[wasm_bindgen]
+pub struct Solution {
+    monkeys: Vec<Monkey>,
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+#[wasm_bindgen]
+impl Solution {
+    pub fn new(input: &str) -> Self {
+        unimplemented!()
     }
 }
