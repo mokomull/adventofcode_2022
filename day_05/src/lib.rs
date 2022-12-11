@@ -127,6 +127,7 @@ impl Solution {
             current_count: 0,
             current_from: 0,
             current_to: 0,
+            generation: 1,
         })
     }
 }
@@ -141,21 +142,32 @@ pub struct Renderer {
     current_count: usize,
     current_from: usize,
     current_to: usize,
+
+    generation: usize,
 }
 
 #[wasm_bindgen]
 impl Renderer {
     // despite all the storage of from/to being one-indexed, do_move is called with *zero*-indexed
     // stack ids.
-    fn tick<F>(&mut self, mut do_move: F) -> Result<(), JsValue>
+    fn tick<F>(&mut self, generation: Option<String>, mut do_move: F) -> Result<(), JsValue>
     where
         F: FnMut(&mut Self, usize, usize, usize) -> Result<Vec<HtmlElement>, JsValue>,
     {
         debug!(
-            "top: {} from {} to {}",
-            self.current_count, self.current_from, self.current_to
+            "top: called for generation {:?}, moving {} from {} to {}",
+            generation, self.current_count, self.current_from, self.current_to
         );
         debug!("element is {:?}", self.currently_moving);
+
+        if let Some(g) = generation {
+            if g != self.generation.to_string() {
+                debug!("called for a mismatching generation {:?}, skipping", g);
+                return Ok(());
+            }
+        }
+        self.generation += 1;
+        debug!("generation is now {}", self.generation);
 
         for current_crate in self.currently_moving.drain(..) {
             current_crate.set_onanimationend(None);
@@ -240,22 +252,34 @@ impl Renderer {
         moving_divs
             .get(0)
             .expect("somehow didn't move any crates")
-            .set_onanimationend(Some(animation_callback));
+            .set_onanimationend(Some(&animation_callback.bind1(
+                &JsValue::NULL,
+                &JsValue::from_str(&self.generation.to_string()),
+            )));
 
         Ok(moving_divs)
     }
 
-    pub fn tick_part1(&mut self, callback: &Function) -> Result<(), JsValue> {
+    pub fn tick_part1(
+        &mut self,
+        generation: Option<String>,
+        callback: &Function,
+    ) -> Result<(), JsValue> {
         self.tick(
+            generation,
             move |this: &mut Self, _count, from, to| -> Result<Vec<HtmlElement>, JsValue> {
                 this.move_crates(1, from, to, callback)
             },
         )
     }
 
-    pub fn tick_part2(&mut self, callback: &Function)-> Result<(), JsValue> {
-        self.tick(
-            move |this, count, from, to| this.move_crates(count, from, to, callback)
-        )
+    pub fn tick_part2(
+        &mut self,
+        generation: Option<String>,
+        callback: &Function,
+    ) -> Result<(), JsValue> {
+        self.tick(generation, move |this, count, from, to| {
+            this.move_crates(count, from, to, callback)
+        })
     }
 }
