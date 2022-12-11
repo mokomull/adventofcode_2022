@@ -1,22 +1,13 @@
-use num_bigint::BigUint;
-use num_traits::Zero;
+use std::rc::Rc;
+
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::prelude::*;
 
 #[derive(Clone)]
-enum Operation {
-    Square,
-    Multiply(u32),
-    Add(u32),
-}
-
-use Operation::*;
-
-#[derive(Clone)]
 struct Monkey {
     items: Vec<u32>,
-    operation: Operation,
+    operation: Rc<dyn Fn(u32) -> u32>,
     divisor: u32,
     true_target: usize,
     false_target: usize,
@@ -62,14 +53,14 @@ impl Solution {
                 .expect("unexpected EOF")
                 .strip_prefix("  Operation: new = old ")
                 .unwrap();
-            let operation = if operation_str == "* old" {
-                Square
+            let operation: Rc<dyn Fn(u32) -> u32> = if operation_str == "* old" {
+                Rc::new(|old| old * old)
             } else if let Some(other) = operation_str.strip_prefix("* ") {
                 let other = other.parse::<u32>().unwrap();
-                Multiply(other)
+                Rc::new(move |old| old * other)
             } else if let Some(other) = operation_str.strip_prefix("+ ") {
                 let other = other.parse::<u32>().unwrap();
-                Add(other)
+                Rc::new(move |old| old + other)
             } else {
                 panic!("could not parse operation {:?}", operation_str);
             };
@@ -125,11 +116,7 @@ impl Solution {
                 for item in std::mem::take(&mut monkeys[i].items) {
                     activity[i] += 1;
 
-                    let item = match monkeys[i].operation {
-                        Square => item * item,
-                        Multiply(other) => item * other,
-                        Add(other) => item + other,
-                    };
+                    let item = (monkeys[i].operation)(item);
                     let item = item / 3;
 
                     let target = if item % monkeys[i].divisor == 0 {
@@ -139,48 +126,6 @@ impl Solution {
                     };
 
                     monkeys[target].items.push(item);
-                }
-            }
-        }
-
-        activity.sort_by_key(|&i| std::cmp::Reverse(i));
-        activity.iter().take(2).product()
-    }
-
-    pub fn part2(&self) -> u64 {
-        let mut items = self
-            .monkeys
-            .iter()
-            .map(|monkey| {
-                monkey
-                    .items
-                    .iter()
-                    .map(|&item| BigUint::from(item))
-                    .collect_vec()
-            })
-            .collect_vec();
-        let mut activity = vec![0; self.monkeys.len()];
-
-        for round in 0..10_000 {
-            log::info!("round {}", round);
-
-            for (i, monkey) in self.monkeys.iter().enumerate() {
-                for item in std::mem::take(&mut items[i]) {
-                    activity[i] += 1;
-
-                    let item = match monkey.operation {
-                        Square => item.pow(2),
-                        Multiply(other) => item * other,
-                        Add(other) => item + other,
-                    };
-
-                    let target = if (&item % monkey.divisor).is_zero() {
-                        monkey.true_target
-                    } else {
-                        monkey.false_target
-                    };
-
-                    items[target].push(item);
                 }
             }
         }
