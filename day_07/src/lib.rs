@@ -74,8 +74,30 @@ impl Solution {
     }
 
     pub fn part1(&self) -> Result<u64, JsValue> {
-        debug!("{:#?}", build_tree(self.commands.iter())?);
-        Err("didn't get this far yet".into())
+        let tree = build_tree(self.commands.iter())?;
+        debug!("{:#?}", tree);
+
+        let mut sum = 0;
+
+        fn recurse_through(sum: &mut u64, t: &Tree) -> u64 {
+            let mut this_level = 0;
+            for v in t.values() {
+                match v {
+                    TreeEntry::File(size) => this_level += *size as u64,
+                    TreeEntry::Directory(subtree) => this_level += recurse_through(sum, subtree),
+                }
+            }
+
+            // part 1's condition seems to allow subtrees to be double-counted, so
+            if this_level <= 100_000 {
+                *sum += this_level;
+            }
+
+            this_level
+        }
+        recurse_through(&mut sum, &tree);
+
+        Ok(sum)
     }
 }
 
