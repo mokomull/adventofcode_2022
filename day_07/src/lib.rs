@@ -79,25 +79,34 @@ impl Solution {
 
         let mut sum = 0;
 
-        fn recurse_through(sum: &mut u64, t: &Tree) -> u64 {
-            let mut this_level = 0;
-            for v in t.values() {
-                match v {
-                    TreeEntry::File(size) => this_level += *size as u64,
-                    TreeEntry::Directory(subtree) => this_level += recurse_through(sum, subtree),
-                }
-            }
-
+        recurse_through(&tree, &mut |this_level| {
             // part 1's condition seems to allow subtrees to be double-counted, so
             if this_level <= 100_000 {
-                *sum += this_level;
+                sum += this_level;
             }
-
-            this_level
-        }
-        recurse_through(&mut sum, &tree);
+        });
 
         Ok(sum)
+    }
+
+    pub fn part2(&self) -> Result<u64, JsValue> {
+        let tree = build_tree(self.commands.iter())?;
+
+        let total = recurse_through(&tree, &mut |_| ());
+        debug!("total size is {}", total);
+        assert!(total > 40000000);
+        let needed = total - 40000000;
+        debug!("needed: {}", needed);
+
+        let mut smallest_directory_that_is_big_enough = u64::MAX;
+        recurse_through(&tree, &mut |this_level| {
+            if this_level >= needed {
+                smallest_directory_that_is_big_enough =
+                    std::cmp::min(smallest_directory_that_is_big_enough, this_level);
+            }
+        });
+
+        Ok(smallest_directory_that_is_big_enough)
     }
 }
 
@@ -179,4 +188,20 @@ where
 
     // when we're out of commands, then pretend we went all the way back up to the root to exit the whole thing
     Ok(UpwardCd::Root)
+}
+
+fn recurse_through<F>(t: &Tree, func: &mut F) -> u64
+where
+    F: FnMut(u64) -> (),
+{
+    let mut this_level = 0;
+    for v in t.values() {
+        match v {
+            TreeEntry::File(size) => this_level += *size as u64,
+            TreeEntry::Directory(subtree) => this_level += recurse_through(subtree, func),
+        }
+    }
+    func(this_level);
+
+    this_level
 }
