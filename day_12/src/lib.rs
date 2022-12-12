@@ -11,6 +11,8 @@ pub struct Solution {
 #[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
+        init();
+
         Solution {
             lines: input.lines().map(str::to_owned).collect(),
         }
@@ -27,11 +29,14 @@ impl Solution {
         let (graph, _, end, indexes) = self.to_graph();
         let costs = petgraph::algo::dijkstra(&graph, end, None, |e| *e.weight());
 
+        debug!("costs: {:#?}", costs);
+
         let mut min_cost = u32::MAX;
 
         for (i, row) in self.lines.iter().enumerate() {
             for (j, cell) in row.bytes().enumerate() {
                 if cell == b'S' || cell == b'a' {
+                    debug!("looking at {:?}", (i, j));
                     min_cost = std::cmp::min(
                         min_cost,
                         costs[&indexes[i][j]],
