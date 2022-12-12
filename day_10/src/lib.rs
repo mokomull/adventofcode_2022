@@ -87,6 +87,8 @@ impl Solution {
             })
         }
 
+        debug!("completed {} cycles", cycle);
+
         result
     }
 }
