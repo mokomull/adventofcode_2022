@@ -86,6 +86,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "day_10"
+version = "0.1.0"
+dependencies = [
+ "prelude 0.1.0",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "day_11"
 version = "0.1.0"
 dependencies = [
