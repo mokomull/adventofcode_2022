@@ -17,13 +17,33 @@ impl Solution {
     }
 
     pub fn part1(&self) -> u32 {
-        let (graph, start, end) = self.to_graph();
+        let (graph, start, end, _) = self.to_graph();
 
         let costs = petgraph::algo::dijkstra(&graph, end, Some(start), |e| *e.weight());
         *costs.get(&start).unwrap()
     }
 
-    fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex) {
+    pub fn part2(&self) -> u32 {
+        let (graph, _, end, indexes) = self.to_graph();
+        let costs = petgraph::algo::dijkstra(&graph, end, None, |e| *e.weight());
+
+        let mut min_cost = u32::MAX;
+
+        for (i, row) in self.lines.iter().enumerate() {
+            for (j, cell) in row.bytes().enumerate() {
+                if cell == b'S' || cell == b'a' {
+                    min_cost = std::cmp::min(
+                        min_cost,
+                        costs[&indexes[i][j]],
+                    )
+                }
+            }  
+        }
+
+        min_cost
+    }
+
+    fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex, Vec<Vec<NodeIndex>>) {
         let mut graph = DiGraph::new();
         let mut indexes = vec![];
         let mut start = None;
@@ -77,6 +97,7 @@ impl Solution {
             graph,
             start.expect("didn't find S"),
             end.expect("didn't find E"),
+            indexes,
         )
     }
 }
