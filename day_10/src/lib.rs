@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use js_sys::Function;
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::prelude::*;
@@ -87,6 +88,29 @@ impl Solution {
             })
         }
 
+        debug!("completed {} cycles", cycle);
+
         result
+    }
+
+    pub fn part2(&self, light: Function) {
+        let mut x = 1;
+        let mut cycle = 0;
+
+        for instruction in &self.instructions {
+            x = instruction.eval(x, |x| {
+                if ((x - 1)..=(x + 1)).contains(&(cycle % 40)) {
+                    light
+                        .call2(
+                            &JsValue::NULL,
+                            &JsValue::from_f64((cycle / 40) as f64),
+                            &JsValue::from_f64((cycle % 40) as f64),
+                        )
+                        .expect("light() call failed somehow");
+                }
+
+                cycle += 1;
+            })
+        }
     }
 }
