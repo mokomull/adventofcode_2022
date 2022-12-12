@@ -20,7 +20,7 @@ impl Solution {
         let (graph, start, end) = self.to_graph();
 
         let costs = petgraph::algo::dijkstra(&graph, start, Some(end), |e| *e.weight());
-*        costs.get(&end).unwrap()
+        *costs.get(&end).unwrap()
     }
 
     fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex) {
@@ -67,12 +67,16 @@ impl Solution {
                         x => x,
                     };
                     if other_height <= height + 1 {
-                        graph.add_edge(indexes[i][j], indexes[other_i][other_j ], 1);
+                        graph.add_edge(indexes[i][j], indexes[other_i][other_j], 1);
                     }
                 }
             }
         }
 
-        (graph, start.expect("didn't find S"), end.expect("didn't find E"))
+        (
+            graph,
+            start.expect("didn't find S"),
+            end.expect("didn't find E"),
+        )
     }
 }
