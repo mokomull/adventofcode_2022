@@ -11,19 +11,43 @@ pub struct Solution {
 #[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
+        init();
+
         Solution {
             lines: input.lines().map(str::to_owned).collect(),
         }
     }
 
     pub fn part1(&self) -> u32 {
-        let (graph, start, end) = self.to_graph();
+        let (graph, start, end, _) = self.to_graph();
 
-        let costs = petgraph::algo::dijkstra(&graph, start, Some(end), |e| *e.weight());
-*        costs.get(&end).unwrap()
+        let costs = petgraph::algo::dijkstra(&graph, end, Some(start), |e| *e.weight());
+        *costs.get(&start).unwrap()
     }
 
-    fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex) {
+    pub fn part2(&self) -> u32 {
+        let (graph, _, end, indexes) = self.to_graph();
+        let costs = petgraph::algo::dijkstra(&graph, end, None, |e| *e.weight());
+
+        debug!("costs: {:#?}", costs);
+
+        let mut min_cost = u32::MAX;
+
+        for (i, row) in self.lines.iter().enumerate() {
+            for (j, cell) in row.bytes().enumerate() {
+                if cell == b'S' || cell == b'a' {
+                    debug!("looking at {:?}", (i, j));
+                    if let Some(&cost) = costs.get(&indexes[i][j]) {
+                        min_cost = std::cmp::min(min_cost, cost)
+                    }
+                }
+            }
+        }
+
+        min_cost
+    }
+
+    fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex, Vec<Vec<NodeIndex>>) {
         let mut graph = DiGraph::new();
         let mut indexes = vec![];
         let mut start = None;
@@ -67,12 +91,17 @@ impl Solution {
                         x => x,
                     };
                     if other_height <= height + 1 {
-                        graph.add_edge(indexes[i][j], indexes[other_i][other_j ], 1);
+                        graph.add_edge(indexes[other_i][other_j], indexes[i][j], 1);
                     }
                 }
             }
         }
 
-        (graph, start.expect("didn't find S"), end.expect("didn't find E"))
+        (
+            graph,
+            start.expect("didn't find S"),
+            end.expect("didn't find E"),
+            indexes,
+        )
     }
 }
