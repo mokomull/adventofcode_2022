@@ -37,12 +37,11 @@ impl Solution {
             for (j, cell) in row.bytes().enumerate() {
                 if cell == b'S' || cell == b'a' {
                     debug!("looking at {:?}", (i, j));
-                    min_cost = std::cmp::min(
-                        min_cost,
-                        costs[&indexes[i][j]],
-                    )
+                    if let Some(&cost) = costs.get(&indexes[i][j]) {
+                        min_cost = std::cmp::min(min_cost, cost)
+                    }
                 }
-            }  
+            }
         }
 
         min_cost
