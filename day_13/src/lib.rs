@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::multi::separated_list0;
@@ -8,7 +10,7 @@ use wasm_bindgen::prelude::*;
 
 use Packet::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Packet {
     Integer(u32),
     List(Vec<Packet>),
@@ -29,8 +31,51 @@ fn parse_packet(input: &str) -> IResult<&str, Packet> {
     ))(input)
 }
 
+impl PartialOrd<Packet> for Packet {
+    fn partial_cmp(&self, other: &Packet) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Packet {
+    fn cmp(&self, other: &Packet) -> Ordering {
+        match (self, other) {
+            (Integer(i), Integer(j)) => i.cmp(&j),
+            (List(left), List(right)) => {
+                let mut left = left.as_slice();
+                let mut right = right.as_slice();
+
+                while !left.is_empty() {
+                    if right.is_empty() {
+                        return Ordering::Greater;
+                    }
+
+                    match left[0].cmp(&right[0]) {
+                        Ordering::Less => return Ordering::Less,
+                        Ordering::Greater => return Ordering::Greater,
+                        Ordering::Equal => (), // keep checking the rest of the list!
+                    }
+
+                    left = &left[1..];
+                    right = &right[1..];
+                }
+
+                if right.is_empty() {
+                    Ordering::Equal
+                } else {
+                    Ordering::Less
+                }
+            }
+            (Integer(i), List(_)) => List(vec![Integer(*i)]).cmp(other),
+            (List(_), Integer(i)) => self.cmp(&List(vec![Integer(*i)])),
+        }
+    }
+}
+
 #[wasm_bindgen]
-pub struct Solution {}
+pub struct Solution {
+    packets: Vec<(Packet, Packet)>,
+}
 
 #[wasm_bindgen]
 impl Solution {
@@ -55,6 +100,14 @@ impl Solution {
 
         debug!("parsed: {:#?}", packets);
 
-        Solution {}
+        Solution { packets }
+    }
+
+    pub fn part1(&self) -> usize {
+        self.packets
+            .iter()
+            .enumerate()
+            .filter_map(|(index, (left, right))| if left < right { Some(index + 1) } else { None })
+            .sum()
     }
 }
