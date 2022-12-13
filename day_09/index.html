@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<head>
+    <script type="module">
+        import init, {Solution} from "./pkg/day_09.js";
+        await init();
+
+        document.getElementById("runbutton").addEventListener("click", function() {
+            var solution = Solution.new(document.getElementById("input").value);
+
+            document.getElementById("part1").innerText = solution.part1();
+            document.getElementById("part2").innerText = solution.part2();
+        })
+
+    </script>
+</head>
+<body>
+    <h1>lol</h1>
+    <form>
+        <p>
+            <textarea id="input" cols="60" rows="10">
+R 4
+U 4
+L 3
+D 1
+R 4
+D 1
+L 5
+R 2</textarea>
+        </p>
+        <p>
+            <input id="runbutton" type="button" value="Run!">
+        </p>
+    </form>
+
+    <p>
+        Part 1: <span id="part1"></span>
+    </p>
+    <p>
+        Part 2: <span id="part2"></span>
+    </p>
+</body>
