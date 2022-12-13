@@ -85,7 +85,7 @@ impl Solution {
                     // same column
                     if head.0 > tail.0 + 1 {
                         tail.0 += 1;
-                    } else if head.0 < tail.0 + 1 {
+                    } else if head.0 < tail.0 - 1 {
                         tail.0 -= 1;
                     }
                 } else {
