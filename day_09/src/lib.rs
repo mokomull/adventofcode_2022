@@ -58,6 +58,10 @@ impl Solution {
         self.simulate(2)
     }
 
+    pub fn part2(&self) -> usize {
+        self.simulate(10)
+    }
+
     fn simulate(&self, knots: usize) -> usize {
         let mut positions = vec![(0_i32, 0_i32); knots];
         let mut visited = HashSet::new();
