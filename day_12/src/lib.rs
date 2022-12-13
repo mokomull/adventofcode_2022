@@ -1,4 +1,3 @@
-use petgraph::graph::Node;
 use petgraph::prelude::*;
 use prelude::log::debug;
 use prelude::*;
