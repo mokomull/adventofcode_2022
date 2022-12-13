@@ -1,3 +1,4 @@
+use petgraph::graph::Node;
 use petgraph::prelude::*;
 use prelude::log::debug;
 use prelude::*;
@@ -7,6 +8,8 @@ use wasm_bindgen::prelude::*;
 pub struct Solution {
     lines: Vec<String>,
 }
+
+type NodeName = (usize, usize);
 
 #[wasm_bindgen]
 impl Solution {
@@ -19,15 +22,15 @@ impl Solution {
     }
 
     pub fn part1(&self) -> u32 {
-        let (graph, start, end, _) = self.to_graph();
+        let (graph, start, end) = self.to_graph();
 
-        let costs = petgraph::algo::dijkstra(&graph, end, Some(start), |e| *e.weight());
+        let costs = petgraph::algo::dijkstra(&graph, end, Some(start), |_| 1);
         *costs.get(&start).unwrap()
     }
 
     pub fn part2(&self) -> u32 {
-        let (graph, _, end, indexes) = self.to_graph();
-        let costs = petgraph::algo::dijkstra(&graph, end, None, |e| *e.weight());
+        let (graph, _, end) = self.to_graph();
+        let costs = petgraph::algo::dijkstra(&graph, end, None, |_| 1);
 
         debug!("costs: {:#?}", costs);
 
@@ -37,7 +40,7 @@ impl Solution {
             for (j, cell) in row.bytes().enumerate() {
                 if cell == b'S' || cell == b'a' {
                     debug!("looking at {:?}", (i, j));
-                    if let Some(&cost) = costs.get(&indexes[i][j]) {
+                    if let Some(&cost) = costs.get(&(i, j)) {
                         min_cost = std::cmp::min(min_cost, cost)
                     }
                 }
@@ -47,30 +50,20 @@ impl Solution {
         min_cost
     }
 
-    fn to_graph(&self) -> (DiGraph<u32, u32>, NodeIndex, NodeIndex, Vec<Vec<NodeIndex>>) {
-        let mut graph = DiGraph::new();
-        let mut indexes = vec![];
+    fn to_graph(&self) -> (DiGraphMap<NodeName, ()>, NodeName, NodeName) {
+        let mut graph = DiGraphMap::new();
         let mut start = None;
         let mut end = None;
-
-        for row in &self.lines {
-            let mut row_indexes = vec![];
-            for _cell in row.bytes() {
-                row_indexes.push(graph.add_node(0));
-            }
-            indexes.push(row_indexes);
-        }
-        let indexes = indexes;
 
         for (i, row) in self.lines.iter().enumerate() {
             for (j, cell) in row.bytes().enumerate() {
                 let height = match cell {
                     b'S' => {
-                        start = Some(indexes[i][j]);
+                        start = Some((i, j));
                         b'a'
                     }
                     b'E' => {
-                        end = Some(indexes[i][j]);
+                        end = Some((i, j));
                         b'z'
                     }
                     x => x,
@@ -91,7 +84,7 @@ impl Solution {
                         x => x,
                     };
                     if other_height <= height + 1 {
-                        graph.add_edge(indexes[other_i][other_j], indexes[i][j], 1);
+                        graph.add_edge((other_i, other_j), (i, j), ());
                     }
                 }
             }
@@ -101,7 +94,6 @@ impl Solution {
             graph,
             start.expect("didn't find S"),
             end.expect("didn't find E"),
-            indexes,
         )
     }
 }
