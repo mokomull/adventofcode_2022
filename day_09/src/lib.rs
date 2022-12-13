@@ -68,6 +68,10 @@ impl Solution {
             };
 
             for _ in 0..count {
+                debug!("head: {:?}\ntail: {:?}", head, tail);
+                // head and tail should always start touching
+                assert!((head.0 - tail.0).abs() <= 1 && (head.1 - tail.1).abs() <= 1);
+
                 head = (head.0 + dx, head.1 + dy);
 
                 if head.0 == tail.0 {
@@ -88,7 +92,7 @@ impl Solution {
                     // something diagonal may happen
                     if (head.0 - tail.0).abs() > 1 || (head.1 - tail.1).abs() > 1 {
                         // they're not touching, so tail needs to move diagonally
-                        
+
                         // we know they're not in the same row or column if we get here, so these
                         // will always move tail left-or-right *and* up-or-down.
                         if head.0 > tail.0 {
