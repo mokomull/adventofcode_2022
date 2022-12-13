@@ -40,7 +40,7 @@ impl PartialOrd<Packet> for Packet {
 impl Ord for Packet {
     fn cmp(&self, other: &Packet) -> Ordering {
         match (self, other) {
-            (Integer(i), Integer(j)) => i.cmp(&j),
+            (Integer(i), Integer(j)) => i.cmp(j),
             (List(left), List(right)) => {
                 let mut left = left.as_slice();
                 let mut right = right.as_slice();
