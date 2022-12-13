@@ -1,6 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
-use nom::multi::separated_list1;
+use nom::multi::separated_list0;
 use nom::IResult;
 use prelude::log::debug;
 use prelude::*;
@@ -22,7 +22,7 @@ fn parse_packet(input: &str) -> IResult<&str, Packet> {
         },
         |input| -> IResult<_, _> {
             let (input, _) = tag("[")(input)?;
-            let (input, packets) = separated_list1(tag(","), parse_packet)(input)?;
+            let (input, packets) = separated_list0(tag(","), parse_packet)(input)?;
             let (input, _) = tag("]")(input)?;
             Ok((input, List(packets)))
         },
