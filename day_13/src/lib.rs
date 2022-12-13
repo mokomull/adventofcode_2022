@@ -110,4 +110,28 @@ impl Solution {
             .filter_map(|(index, (left, right))| if left < right { Some(index + 1) } else { None })
             .sum()
     }
+
+    pub fn part2(&self) -> usize {
+        let divider1 = List(vec![List(vec![Integer(2)])]);
+        let divider2 = List(vec![List(vec![Integer(6)])]);
+        let mut all_packets = self
+            .packets
+            .iter()
+            .flat_map(|(left, right)| [left, right])
+            .collect_vec();
+        all_packets.push(&divider1);
+        all_packets.push(&divider2);
+        all_packets.sort();
+
+        let index_1 = all_packets
+            .iter()
+            .position(|&i| std::ptr::eq(i, &divider1))
+            .unwrap();
+        let index_2 = all_packets
+            .iter()
+            .position(|&i| std::ptr::eq(i, &divider2))
+            .unwrap();
+
+        (index_1 + 1) * (index_2 + 1)
+    }
 }
