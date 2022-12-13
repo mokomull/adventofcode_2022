@@ -55,8 +55,11 @@ impl Solution {
     }
 
     pub fn part1(&self) -> usize {
-        let mut tail: (i32, i32) = (0, 0);
-        let mut head: (i32, i32) = (0, 0);
+        self.simulate(2)
+    }
+
+    fn simulate(&self, knots: usize) -> usize {
+        let mut positions = vec![(0_i32, 0_i32); knots];
         let mut visited = HashSet::new();
 
         for instruction in &self.directions {
@@ -68,48 +71,52 @@ impl Solution {
             };
 
             for _ in 0..count {
-                debug!("head: {:?}\ntail: {:?}", head, tail);
-                // head and tail should always start touching
-                assert!((head.0 - tail.0).abs() <= 1 && (head.1 - tail.1).abs() <= 1);
+                positions[0] = (positions[0].0 + dx, positions[0].1 + dy);
 
-                head = (head.0 + dx, head.1 + dy);
+                // reconcile the position of each knot ('tail') to follow the knot in front of it
+                // ('head')
+                for tail_idx in 1..positions.len() {
+                    let (head, tail) = positions.split_at_mut(tail_idx);
+                    let head = head.last_mut().unwrap();
+                    let tail = tail.first_mut().unwrap();
 
-                if head.0 == tail.0 {
-                    // same row
-                    if head.1 > tail.1 + 1 {
-                        tail.1 += 1;
-                    } else if head.1 < tail.1 - 1 {
-                        tail.1 -= 1;
-                    }
-                } else if head.1 == tail.1 {
-                    // same column
-                    if head.0 > tail.0 + 1 {
-                        tail.0 += 1;
-                    } else if head.0 < tail.0 - 1 {
-                        tail.0 -= 1;
-                    }
-                } else {
-                    // something diagonal may happen
-                    if (head.0 - tail.0).abs() > 1 || (head.1 - tail.1).abs() > 1 {
-                        // they're not touching, so tail needs to move diagonally
-
-                        // we know they're not in the same row or column if we get here, so these
-                        // will always move tail left-or-right *and* up-or-down.
-                        if head.0 > tail.0 {
+                    if head.0 == tail.0 {
+                        // same row
+                        if head.1 > tail.1 + 1 {
+                            tail.1 += 1;
+                        } else if head.1 < tail.1 - 1 {
+                            tail.1 -= 1;
+                        }
+                    } else if head.1 == tail.1 {
+                        // same column
+                        if head.0 > tail.0 + 1 {
                             tail.0 += 1;
-                        } else {
+                        } else if head.0 < tail.0 - 1 {
                             tail.0 -= 1;
                         }
+                    } else {
+                        // something diagonal may happen
+                        if (head.0 - tail.0).abs() > 1 || (head.1 - tail.1).abs() > 1 {
+                            // they're not touching, so tail needs to move diagonally
 
-                        if head.1 > tail.1 {
-                            tail.1 += 1;
-                        } else {
-                            tail.1 -= 1;
+                            // we know they're not in the same row or column if we get here, so these
+                            // will always move tail left-or-right *and* up-or-down.
+                            if head.0 > tail.0 {
+                                tail.0 += 1;
+                            } else {
+                                tail.0 -= 1;
+                            }
+
+                            if head.1 > tail.1 {
+                                tail.1 += 1;
+                            } else {
+                                tail.1 -= 1;
+                            }
                         }
                     }
                 }
 
-                visited.insert(tail);
+                visited.insert(*positions.last().unwrap());
             }
         }
 
