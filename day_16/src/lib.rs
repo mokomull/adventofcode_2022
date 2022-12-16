@@ -85,10 +85,15 @@ impl Solution {
             released: 0,
         }];
 
-        for _minute in 0..30 {
+        for minute in 0..30 {
             let mut new_states = vec![];
 
-            debug!("Beginning of minute {_minute}, states:\n{states:#?}");
+            log::info!(
+                "Beginning of minute {}, there are currently {} states",
+                minute,
+                states.len()
+            );
+            debug!("Beginning of minute {minute}, states:\n{states:#?}");
 
             for state in states.into_iter() {
                 let released = state.released
@@ -103,9 +108,6 @@ impl Solution {
                 let visited = visited;
 
                 if state.opened_yet {
-                    let mut opened_valves = state.opened_valves;
-                    opened_valves.insert(state.location);
-
                     for next in &self.valves[state.location].neighbors {
                         if !visited.contains(next.as_str()) {
                             new_states.push(State {
@@ -113,10 +115,18 @@ impl Solution {
                                 opened_yet: false,
                                 released,
                                 visited: visited.clone(),
-                                opened_valves: opened_valves.clone(),
+                                opened_valves: state.opened_valves.clone(),
                             })
                         }
                     }
+
+                    // and we're always allowed to stay put, but it only makes sense to do that if
+                    // we've already opened the valve we're at
+                    new_states.push(State {
+                        released,
+                        visited,
+                        ..state
+                    });
                 } else {
                     // what if we moved on without opening it?
                     for next in &self.valves[state.location].neighbors {
@@ -132,12 +142,14 @@ impl Solution {
                     }
 
                     // but also what if we stuck around to open it?
+                    let mut opened_valves = state.opened_valves;
+                    opened_valves.insert(state.location);
                     new_states.push(State {
                         location: state.location,
                         opened_yet: true,
                         released,
                         visited,
-                        opened_valves: state.opened_valves,
+                        opened_valves,
                     })
                 }
             }
