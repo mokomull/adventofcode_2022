@@ -108,8 +108,10 @@ impl Solution {
                 let visited = visited;
 
                 if state.opened_yet {
+                    let mut found_neighbor = false;
                     for next in &self.valves[state.location].neighbors {
                         if !visited.contains(next.as_str()) {
+                            found_neighbor = true;
                             new_states.push(State {
                                 location: next,
                                 opened_yet: false,
@@ -122,11 +124,13 @@ impl Solution {
 
                     // and we're always allowed to stay put, but it only makes sense to do that if
                     // we've already opened the valve we're at
-                    new_states.push(State {
-                        released,
-                        visited,
-                        ..state
-                    });
+                    if !found_neighbor {
+                        new_states.push(State {
+                            released,
+                            visited,
+                            ..state
+                        });
+                    }
                 } else {
                     // what if we moved on without opening it?
                     for next in &self.valves[state.location].neighbors {
