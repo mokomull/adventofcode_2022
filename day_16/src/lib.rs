@@ -75,6 +75,13 @@ impl Solution {
             opened_valves: HashSet<&'a str>,
             visited: HashSet<&'a str>, // assume we'll never come back to a valve we've passed-up
             released: u32,
+            tracebacks: Vec<String>,
+        }
+
+        fn append_traceback(old: &Vec<String>, trace: String) -> Vec<String> {
+            let mut result = old.clone();
+            result.push(trace);
+            result
         }
 
         let mut states = vec![State {
@@ -83,6 +90,7 @@ impl Solution {
             opened_valves: HashSet::new(),
             visited: HashSet::new(),
             released: 0,
+            tracebacks: vec![],
         }];
 
         for minute in 0..30 {
@@ -118,6 +126,10 @@ impl Solution {
                                 released,
                                 visited: visited.clone(),
                                 opened_valves: state.opened_valves.clone(),
+                                tracebacks: append_traceback(
+                                    &state.tracebacks,
+                                    format!("opened and then moved to {next:?}"),
+                                ),
                             })
                         }
                     }
@@ -128,6 +140,10 @@ impl Solution {
                         new_states.push(State {
                             released,
                             visited,
+                            tracebacks: append_traceback(
+                                &state.tracebacks,
+                                "stayed put".to_owned(),
+                            ),
                             ..state
                         });
                     }
@@ -141,6 +157,10 @@ impl Solution {
                                 released,
                                 visited: visited.clone(),
                                 opened_valves: state.opened_valves.clone(),
+                                tracebacks: append_traceback(
+                                    &state.tracebacks,
+                                    format!("skipped and then moved to {next:?}"),
+                                ),
                             })
                         }
                     }
@@ -154,6 +174,10 @@ impl Solution {
                         released,
                         visited,
                         opened_valves,
+                        tracebacks: append_traceback(
+                            &state.tracebacks,
+                            format!("opened {:?}", state.location),
+                        ),
                     })
                 }
             }
@@ -161,10 +185,11 @@ impl Solution {
             states = new_states;
         }
 
-        states
+        let winner = states
             .into_iter()
-            .map(|state| state.released)
-            .max()
-            .expect("no states!?")
+            .max_by_key(|state| state.released)
+            .expect("no states!?");
+        debug!("winner: {:#?}", winner);
+        winner.released
     }
 }
