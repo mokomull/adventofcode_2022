@@ -68,6 +68,7 @@ impl Solution {
     }
 
     pub fn part1(&self) -> u32 {
+        #[derive(Debug)]
         struct State<'a> {
             location: &'a str,
             opened_yet: bool,
@@ -86,6 +87,8 @@ impl Solution {
 
         for _minute in 0..30 {
             let mut new_states = vec![];
+
+            debug!("Beginning of minute {_minute}, states:\n{states:#?}");
 
             for state in states.into_iter() {
                 let released = state.released
