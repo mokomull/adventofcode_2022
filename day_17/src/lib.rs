@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::collections::BTreeSet;
 use std::ops::ControlFlow;
 
 use prelude::log::debug;
@@ -7,7 +8,7 @@ use wasm_bindgen::prelude::*;
 
 use RockType::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum RockType {
     Underscore,
     Plus,
@@ -186,5 +187,68 @@ impl Solution {
                 }
             }
         }
+    }
+
+    pub fn part2(&self) -> u64 {
+        let mut count = 0;
+        let mut next_rock_type = [Underscore, Plus, Ell, Pipe, Square].into_iter().cycle();
+        let mut input = self.input.chars().cycle();
+        let mut chamber = HashSet::new();
+        let mut max_height = 0;
+
+        // set of (last rock placed, top 10 rows with the indexes shifted down to the "floor")
+        let mut seen = HashSet::new();
+
+        let mut rock = Rock {
+            rock_type: next_rock_type.next().unwrap(),
+            left_pos: 2,
+            bottom_pos: 3,
+        };
+
+        loop {
+            match input.next().expect("ran out of input") {
+                '<' => rock.move_left(&chamber),
+                '>' => rock.move_right(&chamber),
+                x => panic!("unexpected character {x:?}"),
+            }
+
+            match rock.move_down(&mut chamber) {
+                ControlFlow::Continue(()) => (),
+                ControlFlow::Break(top) => {
+                    debug!("rock {rock:?} ossified, chamber now\n{chamber:#?}");
+
+                    max_height = max(max_height, top);
+                    count += 1;
+
+                    if max_height > 10 {
+                        let top_ten_rows: BTreeSet<(u32, u32)> = chamber
+                            .iter()
+                            .filter_map(|&(left, up)| {
+                                if up > max_height - 10 {
+                                    Some((left, up + 10 - max_height))
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
+                        if seen.contains(&(rock.rock_type, top_ten_rows.clone())) {
+                            log::info!("cycle after {count} rocks!");
+                            break;
+                        }
+
+                        seen.insert((rock.rock_type, top_ten_rows));
+                    }
+
+                    rock = Rock {
+                        rock_type: next_rock_type.next().unwrap(),
+                        left_pos: 2,
+                        bottom_pos: max_height + 3,
+                    };
+                }
+            }
+        }
+
+        unimplemented!();
     }
 }
