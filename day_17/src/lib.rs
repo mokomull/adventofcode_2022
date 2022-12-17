@@ -190,7 +190,7 @@ impl Solution {
     pub fn part2(&self) -> u64 {
         let mut count = 0;
         let mut next_rock_type = [Underscore, Plus, Ell, Pipe, Square].into_iter().cycle();
-        let mut input = self.input.chars().cycle();
+        let mut input = self.input.chars().enumerate().cycle();
         let mut chamber = HashSet::new();
         let mut max_height = 0;
 
@@ -207,7 +207,8 @@ impl Solution {
         let cycle_base;
 
         loop {
-            match input.next().expect("ran out of input") {
+            let (i, direction) = input.next().unwrap();
+            match direction {
                 '<' => rock.move_left(&chamber),
                 '>' => rock.move_right(&chamber),
                 x => panic!("unexpected character {x:?}"),
@@ -231,13 +232,15 @@ impl Solution {
                             })
                             .collect();
 
-                        if let Some(&old_height) = seen.get(&(rock.rock_type, top_ten_rows.clone())) {
+                        if let Some(&old_height) =
+                            seen.get(&(i, rock.rock_type, top_ten_rows.clone()))
+                        {
                             log::info!("cycle after {count} rocks!");
                             cycle_base = old_height;
                             break;
                         }
 
-                        seen.insert((rock.rock_type, top_ten_rows), max_height);
+                        seen.insert((i, rock.rock_type, top_ten_rows), max_height);
                     }
 
                     rock = Rock {
@@ -249,7 +252,7 @@ impl Solution {
             }
         }
 
-        let cycle_count = count;
+        let cycle_count = count; // TODO: need to subtract out the number of rocks before the cycle started.
         let final_cycle_height = max_height;
         let cycle_height = max_height - cycle_base;
 
@@ -261,7 +264,7 @@ impl Solution {
 
         let mut count = 0;
         loop {
-            match input.next().expect("ran out of input") {
+            match input.next().expect("ran out of input").1 {
                 '<' => rock.move_left(&chamber),
                 '>' => rock.move_right(&chamber),
                 x => panic!("unexpected character {x:?}"),
