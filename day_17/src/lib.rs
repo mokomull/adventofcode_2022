@@ -205,6 +205,7 @@ impl Solution {
         };
 
         let cycle_base;
+        let cycle_start;
 
         loop {
             let (i, direction) = input.next().unwrap();
@@ -232,15 +233,16 @@ impl Solution {
                             })
                             .collect();
 
-                        if let Some(&old_height) =
+                        if let Some(&(old_count, old_height)) =
                             seen.get(&(i, rock.rock_type, top_ten_rows.clone()))
                         {
-                            log::info!("cycle after {count} rocks!");
+                            log::info!("cycle after {count} rocks, previous count {old_count}, height {old_height}!");
+                            cycle_start = old_count;
                             cycle_base = old_height;
                             break;
                         }
 
-                        seen.insert((i, rock.rock_type, top_ten_rows), max_height);
+                        seen.insert((i, rock.rock_type, top_ten_rows), (count, max_height));
                     }
 
                     rock = Rock {
@@ -252,7 +254,7 @@ impl Solution {
             }
         }
 
-        let cycle_count = count; // TODO: need to subtract out the number of rocks before the cycle started.
+        let cycle_count = count - cycle_start;
         let final_cycle_height = max_height;
         let cycle_height = max_height - cycle_base;
 
@@ -263,6 +265,7 @@ impl Solution {
         };
 
         let mut count = 0;
+        let target_count = 1000000000000u64 - cycle_start;
         loop {
             match input.next().expect("ran out of input").1 {
                 '<' => rock.move_left(&chamber),
@@ -275,8 +278,8 @@ impl Solution {
                 ControlFlow::Break(top) => {
                     max_height = max(max_height, top);
                     count += 1;
-                    if count == 1000000000000u64 % (cycle_count as u64) {
-                        return (cycle_height as u64) * (1000000000000u64 / cycle_count as u64)
+                    if count == target_count % (cycle_count as u64) {
+                        return (cycle_height as u64) * (target_count / cycle_count as u64)
                             + (max_height as u64 - final_cycle_height as u64)
                             + cycle_base as u64;
                     }
