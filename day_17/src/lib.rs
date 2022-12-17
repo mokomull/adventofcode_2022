@@ -268,7 +268,7 @@ impl Solution {
                     max_height = max(max_height, top);
                     count += 1;
                     if count == 1000000000000u64 % (cycle_count as u64) {
-                        return (cycle_height as u64) * (cycle_count as u64 / 1000000000000u64)
+                        return (cycle_height as u64) * (1000000000000u64 / cycle_count as u64)
                             + (max_height as u64 - cycle_height as u64);
                     }
 
