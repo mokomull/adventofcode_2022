@@ -137,6 +137,12 @@ impl Solution {
                     if count == 2022 {
                         return max_height;
                     }
+
+                    rock = Rock {
+                        rock_type: next_rock_type.next().unwrap(),
+                        left_pos: 2,
+                        bottom_pos: max_height + 3,
+                    };
                 }
             }
         }
