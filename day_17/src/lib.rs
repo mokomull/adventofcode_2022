@@ -194,14 +194,17 @@ impl Solution {
         let mut chamber = HashSet::new();
         let mut max_height = 0;
 
-        // set of (last rock placed, top 10 rows with the indexes shifted down to the "floor")
-        let mut seen = HashSet::new();
+        // (last rock placed, top 10 rows with the indexes shifted down to the "floor") -> height of
+        // the first time we saw that situation
+        let mut seen = HashMap::new();
 
         let mut rock = Rock {
             rock_type: next_rock_type.next().unwrap(),
             left_pos: 2,
             bottom_pos: 3,
         };
+
+        let cycle_base;
 
         loop {
             match input.next().expect("ran out of input") {
@@ -228,12 +231,13 @@ impl Solution {
                             })
                             .collect();
 
-                        if seen.contains(&(rock.rock_type, top_ten_rows.clone())) {
+                        if let Some(&old_height) = seen.get(&(rock.rock_type, top_ten_rows.clone())) {
                             log::info!("cycle after {count} rocks!");
+                            cycle_base = old_height;
                             break;
                         }
 
-                        seen.insert((rock.rock_type, top_ten_rows));
+                        seen.insert((rock.rock_type, top_ten_rows), max_height);
                     }
 
                     rock = Rock {
@@ -246,7 +250,8 @@ impl Solution {
         }
 
         let cycle_count = count;
-        let cycle_height = max_height;
+        let final_cycle_height = max_height;
+        let cycle_height = max_height - cycle_base;
 
         rock = Rock {
             rock_type: next_rock_type.next().unwrap(),
@@ -269,7 +274,8 @@ impl Solution {
                     count += 1;
                     if count == 1000000000000u64 % (cycle_count as u64) {
                         return (cycle_height as u64) * (1000000000000u64 / cycle_count as u64)
-                            + (max_height as u64 - cycle_height as u64);
+                            + (max_height as u64 - final_cycle_height as u64)
+                            + cycle_base as u64;
                     }
 
                     rock = Rock {
