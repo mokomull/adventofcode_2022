@@ -171,8 +171,6 @@ impl Solution {
             match rock.move_down(&mut chamber) {
                 ControlFlow::Continue(()) => (),
                 ControlFlow::Break(top) => {
-                    debug!("rock {rock:?} ossified, chamber now\n{chamber:#?}");
-
                     max_height = max(max_height, top);
                     count += 1;
                     if count == 2022 {
@@ -215,8 +213,6 @@ impl Solution {
             match rock.move_down(&mut chamber) {
                 ControlFlow::Continue(()) => (),
                 ControlFlow::Break(top) => {
-                    debug!("rock {rock:?} ossified, chamber now\n{chamber:#?}");
-
                     max_height = max(max_height, top);
                     count += 1;
 
@@ -249,6 +245,40 @@ impl Solution {
             }
         }
 
-        unimplemented!();
+        let cycle_count = count;
+        let cycle_height = max_height;
+
+        rock = Rock {
+            rock_type: next_rock_type.next().unwrap(),
+            left_pos: 2,
+            bottom_pos: 3,
+        };
+
+        let mut count = 0;
+        loop {
+            match input.next().expect("ran out of input") {
+                '<' => rock.move_left(&chamber),
+                '>' => rock.move_right(&chamber),
+                x => panic!("unexpected character {x:?}"),
+            }
+
+            match rock.move_down(&mut chamber) {
+                ControlFlow::Continue(()) => (),
+                ControlFlow::Break(top) => {
+                    max_height = max(max_height, top);
+                    count += 1;
+                    if count == 1000000000000u64 % (cycle_count as u64) {
+                        return (cycle_height as u64) * (cycle_count as u64 / 1000000000000u64)
+                            + (max_height as u64 - cycle_height as u64);
+                    }
+
+                    rock = Rock {
+                        rock_type: next_rock_type.next().unwrap(),
+                        left_pos: 2,
+                        bottom_pos: max_height + 3,
+                    };
+                }
+            }
+        }
     }
 }
