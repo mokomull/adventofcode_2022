@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
@@ -73,7 +75,6 @@ impl Solution {
             location: &'a str,
             opened_yet: bool,
             opened_valves: HashSet<&'a str>,
-            visited: HashSet<&'a str>, // assume we'll never come back to a valve we've passed-up
             released: u32,
             tracebacks: Vec<String>,
         }
@@ -88,10 +89,14 @@ impl Solution {
             location: "AA",
             opened_yet: false,
             opened_valves: HashSet::new(),
-            visited: HashSet::new(),
             released: 0,
             tracebacks: vec![],
         }];
+
+        // never come back to the same location with the same set of open-valves.  it'll be fine to
+        // re-visit the same node if we've opened a valve, but going somewhere, doing nothing, then
+        // coming back is a useless endeavor.
+        let mut visited: HashSet<(&str, BTreeSet<&str>)> = HashSet::new();
 
         for minute in 0..30 {
             let mut new_states = vec![];
@@ -104,6 +109,10 @@ impl Solution {
             debug!("Beginning of minute {minute}, states:\n{states:#?}");
 
             for state in states.into_iter() {
+                let btree_opened_valves: BTreeSet<_> =
+                    state.opened_valves.iter().copied().collect();
+                visited.insert((state.location, btree_opened_valves.clone()));
+
                 let released = state.released
                     + state
                         .opened_valves
@@ -111,20 +120,15 @@ impl Solution {
                         .map(|&name| self.valves[name].flow_rate)
                         .sum::<u32>();
 
-                let mut visited = state.visited;
-                visited.insert(state.location);
-                let visited = visited;
-
                 if state.opened_yet {
                     let mut found_neighbor = false;
                     for next in &self.valves[state.location].neighbors {
-                        if !visited.contains(next.as_str()) {
+                        if !visited.contains(&(next, btree_opened_valves.clone())) {
                             found_neighbor = true;
                             new_states.push(State {
                                 location: next,
                                 opened_yet: false,
                                 released,
-                                visited: visited.clone(),
                                 opened_valves: state.opened_valves.clone(),
                                 tracebacks: append_traceback(
                                     &state.tracebacks,
@@ -139,7 +143,6 @@ impl Solution {
                     if !found_neighbor {
                         new_states.push(State {
                             released,
-                            visited,
                             tracebacks: append_traceback(
                                 &state.tracebacks,
                                 "stayed put".to_owned(),
@@ -150,12 +153,11 @@ impl Solution {
                 } else {
                     // what if we moved on without opening it?
                     for next in &self.valves[state.location].neighbors {
-                        if !visited.contains(next.as_str()) {
+                        if !visited.contains(&(next, btree_opened_valves.clone())) {
                             new_states.push(State {
                                 location: next,
                                 opened_yet: false,
                                 released,
-                                visited: visited.clone(),
                                 opened_valves: state.opened_valves.clone(),
                                 tracebacks: append_traceback(
                                     &state.tracebacks,
@@ -172,7 +174,6 @@ impl Solution {
                         location: state.location,
                         opened_yet: true,
                         released,
-                        visited,
                         opened_valves,
                         tracebacks: append_traceback(
                             &state.tracebacks,
