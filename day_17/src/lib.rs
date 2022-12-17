@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::*;
 
 use RockType::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum RockType {
     Underscore,
     Plus,
@@ -16,6 +16,7 @@ enum RockType {
     Square,
 }
 
+#[derive(Debug)]
 struct Rock {
     rock_type: RockType,
     left_pos: u32,
@@ -23,13 +24,31 @@ struct Rock {
 }
 
 impl Rock {
-    fn move_left(&mut self) {
-        if self.left_pos > 0 {
-            self.left_pos -= 1;
+    fn move_left(&mut self, chamber: &HashSet<(u32, u32)>) {
+        if self.left_pos == 0 {
+            return;
         }
+
+        // offsets from (left_pos - 1, bottom_pos), so we can do all the math as u32
+        let left_offsets: &[(u32, u32)] = match self.rock_type {
+            Underscore => &[(0, 0)],
+            Plus => &[(1, 0), (0, 1), (1, 2)],
+            Ell => &[(0, 0), (2, 1), (2, 2)],
+            Pipe => &[(0, 0), (0, 1), (0, 2), (0, 3)],
+            Square => &[(0, 0), (0, 1)],
+        };
+
+        if left_offsets
+            .into_iter()
+            .any(|&(left, up)| chamber.contains(&(self.left_pos - 1 + left, self.bottom_pos + up)))
+        {
+            return;
+        }
+
+        self.left_pos -= 1;
     }
 
-    fn move_right(&mut self) {
+    fn move_right(&mut self, chamber: &HashSet<(u32, u32)>) {
         let width = match self.rock_type {
             Underscore => 4,
             Plus | Ell => 3,
@@ -37,9 +56,28 @@ impl Rock {
             Square => 2,
         };
 
-        if self.left_pos + width < 7 {
-            self.left_pos += 1;
+        if self.left_pos + width == 7 {
+            return;
         }
+        assert!(self.left_pos + width < 7);
+
+        // offsets from (left_pos, bottom_pos), thankfully, since we can just add unsigned numbers
+        let offsets: &[(u32, u32)] = match self.rock_type {
+            Underscore => &[(4, 0)],
+            Plus => &[(2, 2), (3, 1), (2, 0)],
+            Ell => &[(3, 2), (3, 1), (3, 0)],
+            Pipe => &[(1, 3), (1, 2), (1, 1), (1, 0)],
+            Square => &[(2, 1), (2, 0)],
+        };
+
+        if offsets
+            .into_iter()
+            .any(|&(left, up)| chamber.contains(&(self.left_pos + left, self.bottom_pos + up)))
+        {
+            return;
+        }
+
+        self.left_pos += 1;
     }
 
     // Break(u32) represents one-past-the-top of the height of the brick, if it ossifies.
@@ -124,14 +162,16 @@ impl Solution {
 
         loop {
             match input.next().expect("ran out of input") {
-                '<' => rock.move_left(),
-                '>' => rock.move_right(),
+                '<' => rock.move_left(&chamber),
+                '>' => rock.move_right(&chamber),
                 x => panic!("unexpected character {x:?}"),
             }
 
             match rock.move_down(&mut chamber) {
                 ControlFlow::Continue(()) => (),
                 ControlFlow::Break(top) => {
+                    debug!("rock {rock:?} ossified, chamber now\n{chamber:#?}");
+
                     max_height = max(max_height, top);
                     count += 1;
                     if count == 2022 {
