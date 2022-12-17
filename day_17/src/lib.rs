@@ -112,7 +112,7 @@ impl Solution {
     pub fn part1(&self) -> u32 {
         let mut count = 0;
         let mut next_rock_type = [Underscore, Plus, Ell, Pipe, Square].into_iter().cycle();
-        let mut input = self.input.chars();
+        let mut input = self.input.chars().cycle();
         let mut chamber = HashSet::new();
         let mut max_height = 0;
 
