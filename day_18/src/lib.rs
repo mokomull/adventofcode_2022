@@ -102,7 +102,7 @@ impl<'a> Trapped<'a> {
         let mut visited = [(i, j, k)].into_iter().collect::<HashSet<_>>();
 
         while let Some((i, j, k)) = to_visit.pop_front() {
-            if (i, j, k) == (0, 0, 0) || self.already_seen.get(&(i, j, k)) == Some(&false) {
+            if (i, j, k) == (-1, -1, -1) || self.already_seen.get(&(i, j, k)) == Some(&false) {
                 // we've reached the outside, definitively, or something we already know was on the
                 // outside
                 for (a, b, c) in visited.into_iter() {
@@ -150,9 +150,9 @@ impl<'a> Trapped<'a> {
                 if a > self.maximum_dimension
                     || b > self.maximum_dimension
                     || c > self.maximum_dimension
-                    || a < 0
-                    || b < 0
-                    || c < 0
+                    || a < -1
+                    || b < -1
+                    || c < -1
                 {
                     continue;
                 }
