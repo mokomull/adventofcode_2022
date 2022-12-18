@@ -93,11 +93,6 @@ impl Solution {
             tracebacks: vec![],
         }];
 
-        // never come back to the same location with the same set of open-valves.  it'll be fine to
-        // re-visit the same node if we've opened a valve, but going somewhere, doing nothing, then
-        // coming back is a useless endeavor.
-        let mut visited: HashSet<(&str, BTreeSet<&str>)> = HashSet::new();
-
         for minute in 0..30 {
             let mut new_states = vec![];
 
@@ -106,13 +101,8 @@ impl Solution {
                 minute,
                 states.len()
             );
-            debug!("Beginning of minute {minute}, states:\n{states:#?}");
 
             for state in states.into_iter() {
-                let btree_opened_valves: BTreeSet<_> =
-                    state.opened_valves.iter().copied().collect();
-                visited.insert((state.location, btree_opened_valves.clone()));
-
                 let released = state.released
                     + state
                         .opened_valves
@@ -121,50 +111,39 @@ impl Solution {
                         .sum::<u32>();
 
                 if state.opened_yet {
-                    let mut found_neighbor = false;
                     for next in &self.valves[state.location].neighbors {
-                        if !visited.contains(&(next, btree_opened_valves.clone())) {
-                            found_neighbor = true;
-                            new_states.push(State {
-                                location: next,
-                                opened_yet: false,
-                                released,
-                                opened_valves: state.opened_valves.clone(),
-                                tracebacks: append_traceback(
-                                    &state.tracebacks,
-                                    format!("opened and then moved to {next:?}"),
-                                ),
-                            })
-                        }
+                        new_states.push(State {
+                            location: next,
+                            opened_yet: false,
+                            released,
+                            opened_valves: state.opened_valves.clone(),
+                            tracebacks: append_traceback(
+                                &state.tracebacks,
+                                format!("opened and then moved to {next:?}"),
+                            ),
+                        })
                     }
 
                     // and we're always allowed to stay put, but it only makes sense to do that if
                     // we've already opened the valve we're at
-                    if !found_neighbor {
-                        new_states.push(State {
-                            released,
-                            tracebacks: append_traceback(
-                                &state.tracebacks,
-                                "stayed put".to_owned(),
-                            ),
-                            ..state
-                        });
-                    }
+                    new_states.push(State {
+                        released,
+                        tracebacks: append_traceback(&state.tracebacks, "stayed put".to_owned()),
+                        ..state
+                    });
                 } else {
                     // what if we moved on without opening it?
                     for next in &self.valves[state.location].neighbors {
-                        if !visited.contains(&(next, btree_opened_valves.clone())) {
-                            new_states.push(State {
-                                location: next,
-                                opened_yet: false,
-                                released,
-                                opened_valves: state.opened_valves.clone(),
-                                tracebacks: append_traceback(
-                                    &state.tracebacks,
-                                    format!("skipped and then moved to {next:?}"),
-                                ),
-                            })
-                        }
+                        new_states.push(State {
+                            location: next,
+                            opened_yet: false,
+                            released,
+                            opened_valves: state.opened_valves.clone(),
+                            tracebacks: append_traceback(
+                                &state.tracebacks,
+                                format!("skipped and then moved to {next:?}"),
+                            ),
+                        })
                     }
 
                     // but also what if we stuck around to open it?
