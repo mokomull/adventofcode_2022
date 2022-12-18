@@ -236,7 +236,7 @@ impl Solution {
                         if let Some(&(old_count, old_height)) =
                             seen.get(&(i, rock.rock_type, top_ten_rows.clone()))
                         {
-                            log::info!("cycle after {count} rocks, previous count {old_count}, height {old_height}!");
+                            log::info!("cycle after {count} rocks at height {max_height}, previous count {old_count}, height {old_height}!");
                             cycle_start = old_count;
                             cycle_base = old_height;
                             break;
@@ -261,7 +261,7 @@ impl Solution {
         rock = Rock {
             rock_type: next_rock_type.next().unwrap(),
             left_pos: 2,
-            bottom_pos: 3,
+            bottom_pos: max_height + 3,
         };
 
         let mut count = 0;
