@@ -76,7 +76,6 @@ impl Solution {
             opened_yet: bool,
             opened_valves: HashSet<&'a str>,
             released: u32,
-            tracebacks: Vec<String>,
         }
 
         fn append_traceback(old: &Vec<String>, trace: String) -> Vec<String> {
@@ -90,7 +89,6 @@ impl Solution {
             opened_yet: false,
             opened_valves: HashSet::new(),
             released: 0,
-            tracebacks: vec![],
         }];
 
         for minute in 0..30 {
@@ -117,20 +115,12 @@ impl Solution {
                             opened_yet: false,
                             released,
                             opened_valves: state.opened_valves.clone(),
-                            tracebacks: append_traceback(
-                                &state.tracebacks,
-                                format!("opened and then moved to {next:?}"),
-                            ),
                         })
                     }
 
                     // and we're always allowed to stay put, but it only makes sense to do that if
                     // we've already opened the valve we're at
-                    new_states.push(State {
-                        released,
-                        tracebacks: append_traceback(&state.tracebacks, "stayed put".to_owned()),
-                        ..state
-                    });
+                    new_states.push(State { released, ..state });
                 } else {
                     // what if we moved on without opening it?
                     for next in &self.valves[state.location].neighbors {
@@ -139,10 +129,6 @@ impl Solution {
                             opened_yet: false,
                             released,
                             opened_valves: state.opened_valves.clone(),
-                            tracebacks: append_traceback(
-                                &state.tracebacks,
-                                format!("skipped and then moved to {next:?}"),
-                            ),
                         })
                     }
 
@@ -154,10 +140,6 @@ impl Solution {
                         opened_yet: true,
                         released,
                         opened_valves,
-                        tracebacks: append_traceback(
-                            &state.tracebacks,
-                            format!("opened {:?}", state.location),
-                        ),
                     })
                 }
             }
