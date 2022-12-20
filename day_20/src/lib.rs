@@ -45,9 +45,9 @@ impl Solution {
             .position(|&&element| element == 0)
             .expect("couldn't find zero");
 
-        arrangement[(zero_position + 1000) % arrangement.len()]
+        KEY * (arrangement[(zero_position + 1000) % arrangement.len()]
             + arrangement[(zero_position + 2000) % arrangement.len()]
-            + arrangement[(zero_position + 3000) % arrangement.len()]
+            + arrangement[(zero_position + 3000) % arrangement.len()])
     }
 
     fn mix<'a>(&'a self, mut arrangement: Vec<&'a i64>, factor: i64) -> Vec<&'a i64> {
