@@ -4,7 +4,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub struct Solution {
-    input: Vec<i32>,
+    input: Vec<i64>,
 }
 
 #[wasm_bindgen]
@@ -18,7 +18,7 @@ impl Solution {
         Solution { input }
     }
 
-    pub fn part1(&self) -> i32 {
+    pub fn part1(&self) -> i64 {
         let arrangement = self.mix(self.input.iter().collect(), 1);
 
         let zero_position = arrangement
@@ -31,10 +31,10 @@ impl Solution {
             + arrangement[(zero_position + 3000) % arrangement.len()]
     }
 
-    pub fn part2(&self) -> i32 {
+    pub fn part2(&self) -> i64 {
         let mut arrangement = self.input.iter().collect();
 
-        const KEY: i32 = 811589153;
+        const KEY: i64 = 811589153;
 
         for _round in 0..10 {
             arrangement = self.mix(arrangement, KEY);
@@ -50,7 +50,7 @@ impl Solution {
             + arrangement[(zero_position + 3000) % arrangement.len()]
     }
 
-    fn mix<'a>(&'a self, mut arrangement: Vec<&'a i32>, factor: i32) -> Vec<&'a i32> {
+    fn mix<'a>(&'a self, mut arrangement: Vec<&'a i64>, factor: i64) -> Vec<&'a i64> {
         // arrangement is a Vec of references so we can always find *exactly* the one we're looking for.
 
         for number in &self.input {
@@ -60,11 +60,11 @@ impl Solution {
                 .expect("somehow lost a thing");
             arrangement.remove(position);
 
-            let target = (position as i32) + (*number * factor);
+            let target = (position as i64) + (*number * factor);
             // the % operator always returns something the same sign as its left-hand side
-            let target = target % (arrangement.len() as i32);
+            let target = target % (arrangement.len() as i64);
             let target = if target <= 0 {
-                target + (arrangement.len() as i32)
+                target + (arrangement.len() as i64)
             } else {
                 target
             };
