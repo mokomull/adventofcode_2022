@@ -31,6 +31,25 @@ impl Solution {
             + arrangement[(zero_position + 3000) % arrangement.len()]
     }
 
+    pub fn part2(&self) -> i32 {
+        let mut arrangement = self.input.iter().collect();
+
+        const KEY: i32 = 811589153;
+
+        for _round in 0..10 {
+            arrangement = self.mix(arrangement, KEY);
+        }
+
+        let zero_position = arrangement
+            .iter()
+            .position(|&&element| element == 0)
+            .expect("couldn't find zero");
+
+        arrangement[(zero_position + 1000) % arrangement.len()]
+            + arrangement[(zero_position + 2000) % arrangement.len()]
+            + arrangement[(zero_position + 3000) % arrangement.len()]
+    }
+
     fn mix<'a>(&'a self, mut arrangement: Vec<&'a i32>, factor: i32) -> Vec<&'a i32> {
         // arrangement is a Vec of references so we can always find *exactly* the one we're looking for.
 
