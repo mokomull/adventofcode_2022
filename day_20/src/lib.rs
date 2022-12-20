@@ -31,9 +31,9 @@ impl Solution {
 
             let target = (position as i32) + *number;
             // the % operator always returns something the same sign as its left-hand side
-            let target = target % (self.input.len() as i32);
+            let target = target % (arrangement.len() as i32);
             let target = if target < 0 {
-                target + (self.input.len() as i32)
+                target + (arrangement.len() as i32)
             } else {
                 target
             };
@@ -42,6 +42,8 @@ impl Solution {
                 target.try_into().expect("target shouldn't be negative..."),
                 number,
             );
+
+            debug!("found {number} at {position}; moved it to {target}\narrangement is now {arrangement:?}");
         }
 
         debug!("final arrangement is {arrangement:?}");
