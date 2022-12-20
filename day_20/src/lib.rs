@@ -82,3 +82,31 @@ impl Solution {
         arrangement
     }
 }
+
+#[cfg(test)]
+mod test {
+    use crate::Solution;
+
+    #[test]
+    fn example() {
+        let solution = Solution::new(
+            "1
+2
+-3
+3
+-2
+0
+4",
+        );
+
+        assert_eq!(solution.part1(), 3);
+        assert_eq!(solution.part2(), 1623178306);
+    }
+
+    #[test]
+    fn real_data() {
+        let solution = Solution::new(include_str!("input.txt"));
+        assert_eq!(solution.part1(), 3346);
+        assert_eq!(solution.part2(), 4265712588168);
+    }
+}
