@@ -19,8 +19,20 @@ impl Solution {
     }
 
     pub fn part1(&self) -> i32 {
-        // Vec of references so we can always find *exactly* the one we're looking for.
-        let mut arrangement: Vec<&_> = self.input.iter().collect_vec();
+        let arrangement = self.mix(self.input.iter().collect(), 1);
+
+        let zero_position = arrangement
+            .iter()
+            .position(|&&element| element == 0)
+            .expect("couldn't find zero");
+
+        arrangement[(zero_position + 1000) % arrangement.len()]
+            + arrangement[(zero_position + 2000) % arrangement.len()]
+            + arrangement[(zero_position + 3000) % arrangement.len()]
+    }
+
+    fn mix<'a>(&'a self, mut arrangement: Vec<&'a i32>, factor: i32) -> Vec<&'a i32> {
+        // arrangement is a Vec of references so we can always find *exactly* the one we're looking for.
 
         for number in &self.input {
             let position = arrangement
@@ -29,7 +41,7 @@ impl Solution {
                 .expect("somehow lost a thing");
             arrangement.remove(position);
 
-            let target = (position as i32) + *number;
+            let target = (position as i32) + (*number * factor);
             // the % operator always returns something the same sign as its left-hand side
             let target = target % (arrangement.len() as i32);
             let target = if target <= 0 {
@@ -48,13 +60,6 @@ impl Solution {
 
         debug!("final arrangement is {arrangement:?}");
 
-        let zero_position = arrangement
-            .iter()
-            .position(|&&element| element == 0)
-            .expect("couldn't find zero");
-
-        arrangement[(zero_position + 1000) % arrangement.len()]
-            + arrangement[(zero_position + 2000) % arrangement.len()]
-            + arrangement[(zero_position + 3000) % arrangement.len()]
+        arrangement
     }
 }
