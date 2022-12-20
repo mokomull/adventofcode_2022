@@ -48,6 +48,13 @@ impl Solution {
 
         debug!("final arrangement is {arrangement:?}");
 
-        unimplemented!()
+        let zero_position = arrangement
+            .iter()
+            .position(|&&element| element == 0)
+            .expect("couldn't find zero");
+
+        arrangement[(zero_position + 1000) % arrangement.len()]
+            + arrangement[(zero_position + 2000) % arrangement.len()]
+            + arrangement[(zero_position + 3000) % arrangement.len()]
     }
 }
