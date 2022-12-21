@@ -10,7 +10,7 @@ use Monkey::*;
 
 #[derive(Debug)]
 enum Monkey {
-    Literal(i32),
+    Literal(i64),
     Add(String, String),
     Subtract(String, String),
     Multiply(String, String),
@@ -18,7 +18,7 @@ enum Monkey {
 }
 
 impl Monkey {
-    fn eval(&self, monkeys: &HashMap<String, Monkey>) -> i32 {
+    fn eval(&self, monkeys: &HashMap<String, Monkey>) -> i64 {
         match self {
             Literal(i) => *i,
             Add(m1, m2) => monkeys[m1].eval(monkeys) + monkeys[m2].eval(monkeys),
@@ -47,7 +47,7 @@ mod parse_details {
     use super::*;
 
     pub(super) fn literal(input: &str) -> IResult<&str, Monkey> {
-        let (input, number) = nom::character::complete::i32(input)?;
+        let (input, number) = nom::character::complete::i64(input)?;
         Ok((input, Literal(number)))
     }
 
@@ -99,7 +99,7 @@ impl Solution {
         Solution { monkeys }
     }
 
-    pub fn part1(&self) -> i32 {
+    pub fn part1(&self) -> i64 {
         self.monkeys["root"].eval(&self.monkeys)
     }
 }
