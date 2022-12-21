@@ -1,7 +1,6 @@
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
-use nom::multi::separated_list0;
 use nom::IResult;
 use prelude::log::debug;
 use prelude::*;
@@ -16,6 +15,18 @@ enum Monkey {
     Subtract(String, String),
     Multiply(String, String),
     Divide(String, String),
+}
+
+impl Monkey {
+    fn eval(&self, monkeys: &HashMap<String, Monkey>) -> i32 {
+        match self {
+            Literal(i) => *i,
+            Add(m1, m2) => monkeys[m1].eval(monkeys) + monkeys[m2].eval(monkeys),
+            Subtract(m1, m2) => monkeys[m1].eval(monkeys) - monkeys[m2].eval(monkeys),
+            Multiply(m1, m2) => monkeys[m1].eval(monkeys) * monkeys[m2].eval(monkeys),
+            Divide(m1, m2) => monkeys[m1].eval(monkeys) / monkeys[m2].eval(monkeys),
+        }
+    }
 }
 
 fn parse_monkey(input: &str) -> IResult<&str, (String, Monkey)> {
@@ -79,9 +90,16 @@ impl Solution {
     pub fn new(input: &str) -> Self {
         init();
 
-        let monkeys = input.lines().map(|line| parse_monkey(line).unwrap().1).collect();
+        let monkeys = input
+            .lines()
+            .map(|line| parse_monkey(line).unwrap().1)
+            .collect();
         debug!("parsed: {:?}", monkeys);
 
         Solution { monkeys }
+    }
+
+    pub fn part1(&self) -> i32 {
+        self.monkeys["root"].eval(&self.monkeys)
     }
 }
