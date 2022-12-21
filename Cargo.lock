@@ -135,6 +135,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "day_16"
+version = "0.1.0"
+dependencies = [
+ "nom",
+ "petgraph",
+ "prelude 0.1.0",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "day_17"
 version = "0.1.0"
 dependencies = [
