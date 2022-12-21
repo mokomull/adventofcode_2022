@@ -67,7 +67,7 @@ impl Solution {
         Solution { valves }
     }
 
-    pub fn part1(&self) -> u32 {
+    pub fn part1(&self) -> i32 {
         let mut graph = petgraph::graphmap::DiGraphMap::new();
         for (name, valve) in &self.valves {
             for target in &valve.neighbors {
@@ -84,43 +84,59 @@ impl Solution {
             .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
             .collect_vec();
 
-        let mut result = 0;
+        max_flow_after_visiting(
+            30,
+            0,
+            "AA",
+            &HashSet::new(),
+            &self.valves,
+            &nonzero_valves,
+            &distances,
+        )
+    }
+}
 
-        // is O(N!) really the way to do this?!
-        'order: for ordering in nonzero_valves
-            .iter()
-            .copied()
-            .permutations(nonzero_valves.len())
-        {
-            debug!("checking {ordering:?}");
+fn max_flow_after_visiting(
+    time_remaining: i32,
+    released: i32,
+    location: &str,
+    already_visited: &HashSet<&str>,
+    valves: &HashMap<String, Valve>,
+    nonzero_valves: &[&str],
+    distances: &HashMap<(&str, &str), i32>,
+) -> i32 {
+    // if we took longer than 30 minutes to get to this node, then this doesn't count as a maximum
+    // path at all
+    if time_remaining < 0 {
+        return 0;
+    }
 
-            let mut time_remaining: i32 = 30;
-            let mut released: i32 = 0;
+    let mut visited = already_visited.clone();
+    visited.insert(location);
+    let visited = visited;
 
-            for (from, to) in ["AA"]
-                .into_iter()
-                .chain(ordering.iter().copied())
-                .tuple_windows()
-            {
-                debug!("moving {} to get from {} to {}", distances[&(from, to)], from, to);
-                // move to `to`
-                time_remaining -= distances[&(from, to)];
-                // open `to`
-                time_remaining -= 1;
+    let mut max_released = released;
 
-                debug!("time_remaining: {} * flow_rate: {}", time_remaining, self.valves[to].flow_rate);
-                released += time_remaining * self.valves[to].flow_rate as i32;
-
-                if time_remaining < 0 {
-                    debug!("actually managed to run out of time: {ordering:?}");
-                    // we can't use more than 30 minutes to visit all the valves!
-                    continue 'order;
-                }
-            }
-
-            result = std::cmp::max(result, released);
+    for &next in nonzero_valves {
+        if already_visited.contains(&next) {
+            continue;
         }
 
-        result as u32
+        // subtract 1 minute to account for turning `next` on.
+        let time_remaining = time_remaining - distances[&(location, next)] - 1;
+        max_released = std::cmp::max(
+            max_released,
+            max_flow_after_visiting(
+                time_remaining,
+                released + (time_remaining * valves[next].flow_rate as i32),
+                next,
+                &visited,
+                valves,
+                nonzero_valves,
+                distances,
+            ),
+        );
     }
+
+    max_released
 }
