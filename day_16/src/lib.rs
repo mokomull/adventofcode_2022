@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
@@ -70,88 +68,56 @@ impl Solution {
     }
 
     pub fn part1(&self) -> u32 {
-        #[derive(Debug)]
-        struct State<'a> {
-            location: &'a str,
-            opened_yet: bool,
-            opened_valves: HashSet<&'a str>,
-            released: u32,
+        let mut graph = petgraph::graphmap::UnGraphMap::new();
+        for (name, valve) in &self.valves {
+            for target in &valve.neighbors {
+                graph.add_edge(name.as_str(), target.as_str(), ());
+            }
         }
 
-        fn append_traceback(old: &Vec<String>, trace: String) -> Vec<String> {
-            let mut result = old.clone();
-            result.push(trace);
-            result
-        }
+        let distances = petgraph::algo::floyd_warshall(&graph, |_| 1).unwrap();
 
-        let mut states = vec![State {
-            location: "AA",
-            opened_yet: false,
-            opened_valves: HashSet::new(),
-            released: 0,
-        }];
+        let nonzero_valves = self
+            .valves
+            .iter()
+            .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
+            .collect_vec();
 
-        for minute in 0..30 {
-            let mut new_states = vec![];
+        let mut result = 0;
 
-            log::info!(
-                "Beginning of minute {}, there are currently {} states",
-                minute,
-                states.len()
-            );
+        // is O(N!) really the way to do this?!
+        'order: for ordering in nonzero_valves
+            .iter()
+            .copied()
+            .permutations(nonzero_valves.len())
+        {
+            debug!("checking {ordering:?}");
 
-            for state in states.into_iter() {
-                let released = state.released
-                    + state
-                        .opened_valves
-                        .iter()
-                        .map(|&name| self.valves[name].flow_rate)
-                        .sum::<u32>();
+            let mut time_remaining: i32 = 30;
+            let mut released: i32 = 0;
 
-                if state.opened_yet {
-                    for next in &self.valves[state.location].neighbors {
-                        new_states.push(State {
-                            location: next,
-                            opened_yet: false,
-                            released,
-                            opened_valves: state.opened_valves.clone(),
-                        })
-                    }
+            for (from, to) in ["AA"]
+                .into_iter()
+                .chain(ordering.iter().copied())
+                .tuple_windows()
+            {
+                // move to `to`
+                time_remaining -= distances[&(from, to)];
+                // open `to`
+                time_remaining -= 1;
 
-                    // and we're always allowed to stay put, but it only makes sense to do that if
-                    // we've already opened the valve we're at
-                    new_states.push(State { released, ..state });
-                } else {
-                    // what if we moved on without opening it?
-                    for next in &self.valves[state.location].neighbors {
-                        new_states.push(State {
-                            location: next,
-                            opened_yet: false,
-                            released,
-                            opened_valves: state.opened_valves.clone(),
-                        })
-                    }
+                released += time_remaining * self.valves[to].flow_rate as i32;
 
-                    // but also what if we stuck around to open it?
-                    let mut opened_valves = state.opened_valves;
-                    opened_valves.insert(state.location);
-                    new_states.push(State {
-                        location: state.location,
-                        opened_yet: true,
-                        released,
-                        opened_valves,
-                    })
+                if time_remaining < 0 {
+                    debug!("actually managed to run out of time: {ordering:?}");
+                    // we can't use more than 30 minutes to visit all the valves!
+                    continue 'order;
                 }
             }
 
-            states = new_states;
+            result = std::cmp::max(result, released);
         }
 
-        let winner = states
-            .into_iter()
-            .max_by_key(|state| state.released)
-            .expect("no states!?");
-        debug!("winner: {:#?}", winner);
-        winner.released
+        result as u32
     }
 }

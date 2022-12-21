@@ -152,6 +152,7 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "nom",
+ "petgraph",
  "prelude 0.1.0",
  "wasm-bindgen",
 ]
