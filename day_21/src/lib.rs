@@ -56,20 +56,25 @@ impl Monkey {
         };
 
         match (self, left.eval(monkeys), right.eval(monkeys)) {
-            // Add and Multiply are commutative
-            (Add(_, _), Some(x), None) | (Add(_, _), None, Some(x)) => target - x,
-            (Multiply(_, _), Some(x), None) | (Multiply(_, _), None, Some(x)) => {
+            // Add and Multiply are commutative, so their new targets should be equal in either direction
+            (Add(_, _), Some(x), None) => right.invert(target - x, monkeys),
+            (Add(_, _), None, Some(x)) => left.invert(target - x, monkeys),
+            (Multiply(_, _), Some(x), None) => {
                 assert_eq!(target % x, 0);
-                target / x
+                right.invert(target / x, monkeys)
+            }
+            (Multiply(_, _), None, Some(x)) => {
+                assert_eq!(target % x, 0);
+                left.invert(target / x, monkeys)
             }
             // Subtract and Divide are not
-            (Subtract(_, _), Some(x), None) => x - target,
-            (Subtract(_, _), None, Some(x)) => target + x,
+            (Subtract(_, _), Some(x), None) => right.invert(x - target, monkeys),
+            (Subtract(_, _), None, Some(x)) => left.invert(target + x, monkeys),
             (Divide(_, _), Some(x), None) => {
                 assert_eq!(x % target, 0);
-                x / target
+                right.invert(x / target, monkeys)
             }
-            (Divide(_, _), None, Some(x)) => target * x,
+            (Divide(_, _), None, Some(x)) => left.invert(target * x, monkeys),
             // we already weeded these out immediately upon entering invert().
             (Literal(_), _, _) | (Unknown, _, _) => unreachable!(),
             // and if neither/both sides is unknown, that's a problem
