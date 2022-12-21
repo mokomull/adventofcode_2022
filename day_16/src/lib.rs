@@ -101,11 +101,13 @@ impl Solution {
                 .chain(ordering.iter().copied())
                 .tuple_windows()
             {
+                debug!("moving {} to get from {} to {}", distances[&(from, to)], from, to);
                 // move to `to`
                 time_remaining -= distances[&(from, to)];
                 // open `to`
                 time_remaining -= 1;
 
+                debug!("time_remaining: {} * flow_rate: {}", time_remaining, self.valves[to].flow_rate);
                 released += time_remaining * self.valves[to].flow_rate as i32;
 
                 if time_remaining < 0 {
