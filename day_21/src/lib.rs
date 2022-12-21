@@ -45,6 +45,38 @@ impl Monkey {
             Unknown => None,
         }
     }
+
+    fn invert(&self, target: i64, monkeys: &HashMap<String, Monkey>) -> i64 {
+        let (left, right) = match self {
+            Add(l, r) | Subtract(l, r) | Multiply(l, r) | Divide(l, r) => {
+                (&monkeys[l], &monkeys[r])
+            }
+            Unknown => return target,
+            Literal(_) => panic!("can't invert a literal!"),
+        };
+
+        match (self, left.eval(monkeys), right.eval(monkeys)) {
+            // Add and Multiply are commutative
+            (Add(_, _), Some(x), None) | (Add(_, _), None, Some(x)) => target - x,
+            (Multiply(_, _), Some(x), None) | (Multiply(_, _), None, Some(x)) => {
+                assert_eq!(target % x, 0);
+                target / x
+            }
+            // Subtract and Divide are not
+            (Subtract(_, _), Some(x), None) => x - target,
+            (Subtract(_, _), None, Some(x)) => target + x,
+            (Divide(_, _), Some(x), None) => {
+                assert_eq!(x % target, 0);
+                x / target
+            }
+            (Divide(_, _), None, Some(x)) => target * x,
+            // we already weeded these out immediately upon entering invert().
+            (Literal(_), _, _) | (Unknown, _, _) => unreachable!(),
+            // and if neither/both sides is unknown, that's a problem
+            (_, None, None) => panic!("both sides are unknown!"),
+            (_, Some(_), Some(_)) => panic!("both sides are known!"),
+        }
+    }
 }
 
 fn parse_monkey(input: &str) -> IResult<&str, (String, Monkey)> {
@@ -143,6 +175,6 @@ impl Solution {
         };
         debug!("will try to make one side equal {target}");
 
-        unimplemented!()
+        unknown.invert(target, &monkeys)
     }
 }
