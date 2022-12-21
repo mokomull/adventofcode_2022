@@ -118,7 +118,7 @@ fn max_flow_after_visiting(
     let mut max_released = released;
 
     for &next in nonzero_valves {
-        if already_visited.contains(&next) {
+        if visited.contains(&next) {
             continue;
         }
 
@@ -137,6 +137,8 @@ fn max_flow_after_visiting(
             ),
         );
     }
+
+    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, already visited {already_visited:?} -> {max_released}");
 
     max_released
 }
