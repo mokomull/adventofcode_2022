@@ -8,7 +8,7 @@ use wasm_bindgen::prelude::*;
 
 use Monkey::*;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum Monkey {
     Literal(i64),
     Add(String, String),
@@ -119,5 +119,30 @@ impl Solution {
 
     pub fn part1(&self) -> i64 {
         self.monkeys["root"].eval(&self.monkeys).unwrap()
+    }
+
+    pub fn part2(&self) -> i64 {
+        let (left, right) = match &self.monkeys["root"] {
+            Add(l, r) | Subtract(l, r) | Multiply(l, r) | Divide(l, r) => {
+                (&self.monkeys[l], &self.monkeys[r])
+            }
+            _ => panic!("root monkey doesn't have two sides"),
+        };
+
+        let mut monkeys = self.monkeys.clone();
+        monkeys
+            .insert("humn".to_owned(), Unknown)
+            .expect("humn was not previously in the list?!");
+        let monkeys = monkeys;
+
+        let (target, unknown) = match (left.eval(&monkeys), right.eval(&monkeys)) {
+            (Some(x), None) => (x, right),
+            (None, Some(x)) => (x, left),
+            (None, None) => panic!("neither side is a known value"),
+            (Some(_), Some(_)) => panic!("both sides are known!"),
+        };
+        debug!("will try to make one side equal {target}");
+
+        unimplemented!()
     }
 }
