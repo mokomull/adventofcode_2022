@@ -68,7 +68,7 @@ impl Solution {
     }
 
     pub fn part1(&self) -> u32 {
-        let mut graph = petgraph::graphmap::UnGraphMap::new();
+        let mut graph = petgraph::graphmap::DiGraphMap::new();
         for (name, valve) in &self.valves {
             for target in &valve.neighbors {
                 graph.add_edge(name.as_str(), target.as_str(), ());
@@ -76,6 +76,7 @@ impl Solution {
         }
 
         let distances = petgraph::algo::floyd_warshall(&graph, |_| 1).unwrap();
+        debug!("computed distances:\n{distances:#?}");
 
         let nonzero_valves = self
             .valves
