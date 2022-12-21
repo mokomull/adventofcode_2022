@@ -15,16 +15,34 @@ enum Monkey {
     Subtract(String, String),
     Multiply(String, String),
     Divide(String, String),
+    Unknown,
 }
 
 impl Monkey {
-    fn eval(&self, monkeys: &HashMap<String, Monkey>) -> i64 {
+    fn eval(&self, monkeys: &HashMap<String, Monkey>) -> Option<i64> {
         match self {
-            Literal(i) => *i,
-            Add(m1, m2) => monkeys[m1].eval(monkeys) + monkeys[m2].eval(monkeys),
-            Subtract(m1, m2) => monkeys[m1].eval(monkeys) - monkeys[m2].eval(monkeys),
-            Multiply(m1, m2) => monkeys[m1].eval(monkeys) * monkeys[m2].eval(monkeys),
-            Divide(m1, m2) => monkeys[m1].eval(monkeys) / monkeys[m2].eval(monkeys),
+            Literal(i) => Some(*i),
+            Add(m1, m2) => monkeys[m1].eval(monkeys).and_then(|m1_result| {
+                monkeys[m2]
+                    .eval(monkeys)
+                    .map(|m2_result| m1_result + m2_result)
+            }),
+            Subtract(m1, m2) => monkeys[m1].eval(monkeys).and_then(|m1_result| {
+                monkeys[m2]
+                    .eval(monkeys)
+                    .map(|m2_result| m1_result - m2_result)
+            }),
+            Multiply(m1, m2) => monkeys[m1].eval(monkeys).and_then(|m1_result| {
+                monkeys[m2]
+                    .eval(monkeys)
+                    .map(|m2_result| m1_result * m2_result)
+            }),
+            Divide(m1, m2) => monkeys[m1].eval(monkeys).and_then(|m1_result| {
+                monkeys[m2]
+                    .eval(monkeys)
+                    .map(|m2_result| m1_result / m2_result)
+            }),
+            Unknown => None,
         }
     }
 }
@@ -100,6 +118,6 @@ impl Solution {
     }
 
     pub fn part1(&self) -> i64 {
-        self.monkeys["root"].eval(&self.monkeys)
+        self.monkeys["root"].eval(&self.monkeys).unwrap()
     }
 }
