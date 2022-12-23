@@ -1,6 +1,6 @@
+use itertools::MinMaxResult;
 use prelude::log::debug;
 use prelude::*;
-use itertools::MinMaxResult;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -59,6 +59,16 @@ impl Solution {
                     (from_row + 1, from_col + 1),
                 ];
 
+                // if no elves are adjacent, we won't move at all
+                let mut all_adjacent = check_north
+                    .iter()
+                    .chain(check_south.iter())
+                    .chain(check_west.iter())
+                    .chain(check_east.iter());
+                if !all_adjacent.any(|pos| elves.contains(pos)) {
+                    continue;
+                }
+
                 let can_move_north = !check_north.iter().any(|loc| elves.contains(loc));
                 let can_move_south = !check_south.iter().any(|loc| elves.contains(loc));
                 let can_move_west = !check_west.iter().any(|loc| elves.contains(loc));
@@ -75,7 +85,7 @@ impl Solution {
                 } else {
                     // don't move at all; another elf won't want to move to this space anyway, since
                     // it'd be a false entry in that respective elf's can_move_<direction> iterator.
-                    (from_row, from_col)
+                    continue;
                 };
 
                 moves.entry(to).or_default().push((from_row, from_col));
