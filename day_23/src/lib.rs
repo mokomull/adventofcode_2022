@@ -1,11 +1,62 @@
+use std::collections::VecDeque;
+
 use itertools::MinMaxResult;
 use prelude::log::debug;
 use prelude::*;
 use wasm_bindgen::prelude::*;
 
+use Direction::*;
+
 #[wasm_bindgen]
 pub struct Solution {
     elves: HashSet<(i32, i32)>,
+}
+
+enum Direction {
+    North,
+    South,
+    East,
+    West,
+}
+
+impl Direction {
+    fn can_move(&self, from: (i32, i32), elves: &HashSet<(i32, i32)>) -> bool {
+        let (from_row, from_col) = from;
+        let check = match self {
+            North => [
+                (from_row - 1, from_col - 1),
+                (from_row - 1, from_col),
+                (from_row - 1, from_col + 1),
+            ],
+            South => [
+                (from_row + 1, from_col - 1),
+                (from_row + 1, from_col),
+                (from_row + 1, from_col + 1),
+            ],
+            West => [
+                (from_row - 1, from_col - 1),
+                (from_row, from_col - 1),
+                (from_row + 1, from_col - 1),
+            ],
+            East => [
+                (from_row - 1, from_col + 1),
+                (from_row, from_col + 1),
+                (from_row + 1, from_col + 1),
+            ],
+        };
+
+        !check.iter().any(|to| elves.contains(to))
+    }
+
+    fn move_elf(&self, from: (i32, i32)) -> (i32, i32) {
+        let (from_row, from_col) = from;
+        match self {
+            North => (from_row - 1, from_col),
+            South => (from_row + 1, from_col),
+            West => (from_row, from_col - 1),
+            East => (from_row, from_col + 1),
+        }
+    }
 }
 
 #[wasm_bindgen]
@@ -33,62 +84,28 @@ impl Solution {
 
     pub fn part1(&self) -> i32 {
         let mut elves = self.elves.clone();
+        let mut directions = VecDeque::from(vec![North, South, East, West]);
 
         for _round in 0..10 {
             let mut moves = HashMap::<(i32, i32), Vec<(i32, i32)>>::new();
 
-            for &(from_row, from_col) in &elves {
-                let check_north = [
-                    (from_row - 1, from_col - 1),
-                    (from_row - 1, from_col),
-                    (from_row - 1, from_col + 1),
-                ];
-                let check_south = [
-                    (from_row + 1, from_col - 1),
-                    (from_row + 1, from_col),
-                    (from_row + 1, from_col + 1),
-                ];
-                let check_west = [
-                    (from_row - 1, from_col - 1),
-                    (from_row, from_col - 1),
-                    (from_row + 1, from_col - 1),
-                ];
-                let check_east = [
-                    (from_row - 1, from_col + 1),
-                    (from_row, from_col + 1),
-                    (from_row + 1, from_col + 1),
-                ];
-
-                // if no elves are adjacent, we won't move at all
-                let mut all_adjacent = check_north
-                    .iter()
-                    .chain(check_south.iter())
-                    .chain(check_west.iter())
-                    .chain(check_east.iter());
-                if !all_adjacent.any(|pos| elves.contains(pos)) {
+            for &from in &elves {
+                // if we can move in all four directions, then there aren't any elves adjacent and we shouldn't move
+                if directions.iter().all(|d| d.can_move(from, &elves)) {
                     continue;
                 }
 
-                let can_move_north = !check_north.iter().any(|loc| elves.contains(loc));
-                let can_move_south = !check_south.iter().any(|loc| elves.contains(loc));
-                let can_move_west = !check_west.iter().any(|loc| elves.contains(loc));
-                let can_move_east = !check_east.iter().any(|loc| elves.contains(loc));
+                let to = directions.iter().find_map(|d| {
+                    if d.can_move(from, &elves) {
+                        Some(d.move_elf(from))
+                    } else {
+                        None
+                    }
+                });
 
-                let to = if can_move_north {
-                    (from_row - 1, from_col)
-                } else if can_move_south {
-                    (from_row + 1, from_col)
-                } else if can_move_west {
-                    (from_row, from_col - 1)
-                } else if can_move_east {
-                    (from_row, from_col + 1)
-                } else {
-                    // don't move at all; another elf won't want to move to this space anyway, since
-                    // it'd be a false entry in that respective elf's can_move_<direction> iterator.
-                    continue;
-                };
-
-                moves.entry(to).or_default().push((from_row, from_col));
+                if let Some(to) = to {
+                    moves.entry(to).or_default().push(from);
+                }
             }
 
             for (to, froms) in moves {
@@ -97,6 +114,9 @@ impl Solution {
                     assert!(elves.insert(to));
                 }
             }
+
+            let first = directions.pop_front().unwrap();
+            directions.push_back(first);
         }
 
         let MinMaxResult::MinMax(min_row, max_row) = elves.iter().map(|(row, _)| row).minmax() else {
