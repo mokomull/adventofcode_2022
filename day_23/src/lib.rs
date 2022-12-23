@@ -1,4 +1,4 @@
-use std::collections::{VecDeque, BTreeSet};
+use std::collections::{BTreeSet, VecDeque};
 
 use itertools::MinMaxResult;
 use prelude::log::debug;
@@ -87,26 +87,7 @@ impl Solution {
         let mut directions = VecDeque::from(vec![North, South, West, East]);
 
         for _round in 0..10 {
-            let mut moves = HashMap::<(i32, i32), Vec<(i32, i32)>>::new();
-
-            for &from in &elves {
-                // if we can move in all four directions, then there aren't any elves adjacent and we shouldn't move
-                if directions.iter().all(|d| d.can_move(from, &elves)) {
-                    continue;
-                }
-
-                let to = directions.iter().find_map(|d| {
-                    if d.can_move(from, &elves) {
-                        Some(d.move_elf(from))
-                    } else {
-                        None
-                    }
-                });
-
-                if let Some(to) = to {
-                    moves.entry(to).or_default().push(from);
-                }
-            }
+            let moves = calculate_moves(&elves, &directions);
 
             for (to, froms) in moves {
                 if froms.len() == 1 {
@@ -130,4 +111,32 @@ impl Solution {
 
         (max_row - min_row + 1) * (max_col - min_col + 1) - elves.len() as i32
     }
+}
+
+fn calculate_moves(
+    elves: &BTreeSet<(i32, i32)>,
+    directions: &VecDeque<Direction>,
+) -> HashMap<(i32, i32), Vec<(i32, i32)>> {
+    let mut moves = HashMap::<(i32, i32), Vec<(i32, i32)>>::new();
+
+    for &from in elves {
+        // if we can move in all four directions, then there aren't any elves adjacent and we shouldn't move
+        if directions.iter().all(|d| d.can_move(from, &elves)) {
+            continue;
+        }
+
+        let to = directions.iter().find_map(|d| {
+            if d.can_move(from, &elves) {
+                Some(d.move_elf(from))
+            } else {
+                None
+            }
+        });
+
+        if let Some(to) = to {
+            moves.entry(to).or_default().push(from);
+        }
+    }
+
+    moves
 }
