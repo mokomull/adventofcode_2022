@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{VecDeque, BTreeSet};
 
 use itertools::MinMaxResult;
 use prelude::log::debug;
@@ -20,7 +20,7 @@ enum Direction {
 }
 
 impl Direction {
-    fn can_move(&self, from: (i32, i32), elves: &HashSet<(i32, i32)>) -> bool {
+    fn can_move(&self, from: (i32, i32), elves: &BTreeSet<(i32, i32)>) -> bool {
         let (from_row, from_col) = from;
         let check = match self {
             North => [
@@ -83,7 +83,7 @@ impl Solution {
     }
 
     pub fn part1(&self) -> i32 {
-        let mut elves = self.elves.clone();
+        let mut elves = self.elves.iter().copied().collect::<BTreeSet<_>>();
         let mut directions = VecDeque::from(vec![North, South, East, West]);
 
         for _round in 0..10 {
@@ -114,6 +114,8 @@ impl Solution {
                     assert!(elves.insert(to));
                 }
             }
+
+            debug!("after {_round}: {elves:#?}");
 
             let first = directions.pop_front().unwrap();
             directions.push_back(first);
