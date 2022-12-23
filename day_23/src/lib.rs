@@ -111,6 +111,31 @@ impl Solution {
 
         (max_row - min_row + 1) * (max_col - min_col + 1) - elves.len() as i32
     }
+
+    pub fn part2(&self) -> u32 {
+        let mut elves = self.elves.iter().copied().collect::<BTreeSet<_>>();
+        let mut directions = VecDeque::from(vec![North, South, West, East]);
+
+        for round in 1.. {
+            let moves = calculate_moves(&elves, &directions);
+
+            if !moves.iter().any(|(_to, froms)| froms.len() == 1) {
+                return round;
+            }
+
+            for (to, froms) in moves {
+                if froms.len() == 1 {
+                    assert!(elves.remove(&froms[0]));
+                    assert!(elves.insert(to));
+                }
+            }
+
+            let first = directions.pop_front().unwrap();
+            directions.push_back(first);
+        }
+
+        panic!("Did not find any stable state!");
+    }
 }
 
 fn calculate_moves(
