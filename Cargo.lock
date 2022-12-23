@@ -184,6 +184,7 @@ dependencies = [
 name = "day_23"
 version = "0.1.0"
 dependencies = [
+ "itertools",
  "nom",
  "prelude 0.1.0",
  "wasm-bindgen",

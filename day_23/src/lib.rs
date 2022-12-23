@@ -1,5 +1,6 @@
 use prelude::log::debug;
 use prelude::*;
+use itertools::MinMaxResult;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -28,5 +29,73 @@ impl Solution {
         debug!("parsed: {elves:#?}");
 
         Self { elves }
+    }
+
+    pub fn part1(&self) -> i32 {
+        let mut elves = self.elves.clone();
+
+        for _round in 0..10 {
+            let mut moves = HashMap::<(i32, i32), Vec<(i32, i32)>>::new();
+
+            for &(from_row, from_col) in &elves {
+                let check_north = [
+                    (from_row - 1, from_col - 1),
+                    (from_row - 1, from_col),
+                    (from_row - 1, from_col + 1),
+                ];
+                let check_south = [
+                    (from_row + 1, from_col - 1),
+                    (from_row + 1, from_col),
+                    (from_row + 1, from_col + 1),
+                ];
+                let check_west = [
+                    (from_row - 1, from_col - 1),
+                    (from_row, from_col - 1),
+                    (from_row + 1, from_col - 1),
+                ];
+                let check_east = [
+                    (from_row - 1, from_col + 1),
+                    (from_row, from_col + 1),
+                    (from_row + 1, from_col + 1),
+                ];
+
+                let can_move_north = !check_north.iter().any(|loc| elves.contains(loc));
+                let can_move_south = !check_south.iter().any(|loc| elves.contains(loc));
+                let can_move_west = !check_west.iter().any(|loc| elves.contains(loc));
+                let can_move_east = !check_east.iter().any(|loc| elves.contains(loc));
+
+                let to = if can_move_north {
+                    (from_row - 1, from_col)
+                } else if can_move_south {
+                    (from_row + 1, from_col)
+                } else if can_move_west {
+                    (from_row, from_col - 1)
+                } else if can_move_east {
+                    (from_row, from_col + 1)
+                } else {
+                    // don't move at all; another elf won't want to move to this space anyway, since
+                    // it'd be a false entry in that respective elf's can_move_<direction> iterator.
+                    (from_row, from_col)
+                };
+
+                moves.entry(to).or_default().push((from_row, from_col));
+            }
+
+            for (to, froms) in moves {
+                if froms.len() == 1 {
+                    assert!(elves.remove(&froms[0]));
+                    assert!(elves.insert(to));
+                }
+            }
+        }
+
+        let MinMaxResult::MinMax(min_row, max_row) = elves.iter().map(|(row, _)| row).minmax() else {
+            panic!("ran out of elves?");
+        };
+        let MinMaxResult::MinMax(min_col, max_col) = elves.iter().map(|(_, col)| col).minmax() else {
+            unreachable!();
+        };
+
+        (max_row - min_row) * (max_col - min_col) - elves.len() as i32
     }
 }
