@@ -84,7 +84,7 @@ impl Solution {
 
     pub fn part1(&self) -> i32 {
         let mut elves = self.elves.iter().copied().collect::<BTreeSet<_>>();
-        let mut directions = VecDeque::from(vec![North, South, East, West]);
+        let mut directions = VecDeque::from(vec![North, South, West, East]);
 
         for _round in 0..10 {
             let mut moves = HashMap::<(i32, i32), Vec<(i32, i32)>>::new();
