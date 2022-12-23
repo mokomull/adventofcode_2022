@@ -128,6 +128,6 @@ impl Solution {
             unreachable!();
         };
 
-        (max_row - min_row) * (max_col - min_col) - elves.len() as i32
+        (max_row - min_row + 1) * (max_col - min_col + 1) - elves.len() as i32
     }
 }
