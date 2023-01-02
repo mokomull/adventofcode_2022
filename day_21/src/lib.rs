@@ -4,7 +4,6 @@ use nom::character::complete::alpha1;
 use nom::IResult;
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 use Monkey::*;
 
@@ -135,12 +134,10 @@ mod parse_details {
     }
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     monkeys: HashMap<String, Monkey>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

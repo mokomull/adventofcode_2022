@@ -2,14 +2,11 @@ use std::collections::VecDeque;
 
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
 pub struct Solution {
     cubes: HashSet<(i32, i32, i32)>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

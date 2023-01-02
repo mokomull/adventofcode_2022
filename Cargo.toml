@@ -1,5 +1,5 @@
 [workspace]
-members=["day_*", "prelude"]
+members=["day_*", "omnibus", "prelude"]
 
 [workspace.dependencies]
 petgraph = "0.6.2"

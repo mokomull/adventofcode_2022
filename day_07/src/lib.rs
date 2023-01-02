@@ -1,6 +1,6 @@
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 
 #[derive(Debug)]
 enum Command {
@@ -24,12 +24,10 @@ enum InputEntry {
 use Command::*;
 use Component::*;
 
-#[wasm_bindgen]
 pub struct Solution {
     commands: Vec<Command>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

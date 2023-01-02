@@ -1,7 +1,6 @@
 use prelude::log::debug;
 use prelude::*;
 use std::cmp::Ordering::*;
-use wasm_bindgen::prelude::*;
 use Choice::*;
 use RoundEnd::*;
 
@@ -86,12 +85,10 @@ impl RoundEnd {
     }
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     strategy_guide: Vec<(Choice, Choice)>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         prelude::init();
