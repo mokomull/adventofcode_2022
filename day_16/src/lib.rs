@@ -79,17 +79,9 @@ impl Solution {
             .valves
             .iter()
             .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
-            .collect_vec();
+            .collect();
 
-        max_flow_after_visiting(
-            30,
-            0,
-            "AA",
-            &HashSet::new(),
-            &self.valves,
-            &nonzero_valves,
-            &distances,
-        )
+        max_flow_after_visiting(30, 0, "AA", &nonzero_valves, &self.valves, &distances)
     }
 
     pub fn part2(&self) -> i32 {
@@ -117,14 +109,14 @@ impl Solution {
         // zero in one bit represents that "myself" will take it, a one in a bit represents that
         // "elephant" will take it
         for i in 0..(1 << (nonzero_valves.len() - 1)) {
-            let mut myself = vec![];
-            let mut elephant = vec![];
+            let mut myself = HashSet::new();
+            let mut elephant = HashSet::new();
 
             for (j, valve) in nonzero_valves.iter().copied().enumerate() {
                 if i & (1 << j) != 0 {
-                    elephant.push(valve);
+                    elephant.insert(valve);
                 } else {
-                    myself.push(valve);
+                    myself.insert(valve);
                 }
 
                 max_flow = std::cmp::max(
@@ -133,17 +125,15 @@ impl Solution {
                         26,
                         0,
                         "AA",
-                        &HashSet::new(),
-                        &self.valves,
                         &myself,
+                        &self.valves,
                         &distances,
                     ) + max_flow_after_visiting(
                         26,
                         0,
                         "AA",
-                        &HashSet::new(),
-                        &self.valves,
                         &elephant,
+                        &self.valves,
                         &distances,
                     ),
                 )
@@ -158,9 +148,8 @@ fn max_flow_after_visiting(
     time_remaining: i32,
     released: i32,
     location: &str,
-    already_visited: &HashSet<&str>,
+    to_visit: &HashSet<&str>,
     valves: &HashMap<String, Valve>,
-    nonzero_valves: &[&str],
     distances: &HashMap<(&str, &str), i32>,
 ) -> i32 {
     // if we took longer than 30 minutes to get to this node, then this doesn't count as a maximum
@@ -169,17 +158,13 @@ fn max_flow_after_visiting(
         return 0;
     }
 
-    let mut visited = already_visited.clone();
-    visited.insert(location);
-    let visited = visited;
+    let mut to_visit = to_visit.clone();
+    to_visit.remove(location);
+    let to_visit = to_visit;
 
     let mut max_released = released;
 
-    for &next in nonzero_valves {
-        if visited.contains(&next) {
-            continue;
-        }
-
+    for &next in &to_visit {
         // subtract 1 minute to account for turning `next` on.
         let time_remaining = time_remaining - distances[&(location, next)] - 1;
         max_released = std::cmp::max(
@@ -188,15 +173,14 @@ fn max_flow_after_visiting(
                 time_remaining,
                 released + (time_remaining * valves[next].flow_rate as i32),
                 next,
-                &visited,
+                &to_visit,
                 valves,
-                nonzero_valves,
                 distances,
             ),
         );
     }
 
-    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, already visited {already_visited:?} -> {max_released}");
+    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, remaining to visit {to_visit:?} -> {max_released}");
 
     max_released
 }
