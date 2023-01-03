@@ -29,6 +29,7 @@ common_day!(day_07, Day07, Result<u64, JsValue>, Result<u64, JsValue>);
 common_day!(day_11, Day11, u32, u64);
 common_day!(day_12, Day12, u32, u32);
 common_day!(day_13, Day13, usize, usize);
+common_day!(day_16, Day16, i32, i32);
 common_day!(day_17, Day17, u32, u64);
 common_day!(day_18, Day18, u32, u32);
 common_day!(day_20, Day20, i64, i64);

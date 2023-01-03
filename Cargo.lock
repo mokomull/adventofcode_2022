@@ -135,7 +135,6 @@ dependencies = [
  "nom",
  "petgraph",
  "prelude 0.1.0",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -270,6 +269,7 @@ dependencies = [
  "day_11",
  "day_12",
  "day_13",
+ "day_16",
  "day_17",
  "day_18",
  "day_20",

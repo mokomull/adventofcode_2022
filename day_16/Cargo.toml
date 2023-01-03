@@ -9,7 +9,6 @@ edition = "2021"
 nom = "7.1.1"
 petgraph = { workspace = true }
 prelude = { path = "../prelude" }
-wasm-bindgen = "0.2.83"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

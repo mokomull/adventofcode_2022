@@ -5,7 +5,6 @@ use nom::multi::separated_list1;
 use nom::IResult;
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 #[derive(Debug)]
 struct Valve {
@@ -43,12 +42,10 @@ fn parse_valve(input: &str) -> IResult<&str, (String, Valve)> {
     ))
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     valves: HashMap<String, Valve>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();
@@ -93,6 +90,10 @@ impl Solution {
             &nonzero_valves,
             &distances,
         )
+    }
+
+    pub fn part2(&self) -> i32 {
+        unimplemented!()
     }
 }
 

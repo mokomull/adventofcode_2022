@@ -16,6 +16,7 @@ day_10 = { path = "../day_10" }
 day_11 = { path = "../day_11" }
 day_12 = { path = "../day_12" }
 day_13 = { path = "../day_13" }
+day_16 = { version = "0.1.0", path = "../day_16" }
 day_17 = { path = "../day_17" }
 day_18 = { path = "../day_18" }
 day_20 = { path = "../day_20" }
