@@ -93,7 +93,30 @@ impl Solution {
     }
 
     pub fn part2(&self) -> i32 {
-        unimplemented!()
+        let mut graph = petgraph::graphmap::DiGraphMap::new();
+        for (name, valve) in &self.valves {
+            for target in &valve.neighbors {
+                graph.add_edge(name.as_str(), target.as_str(), ());
+            }
+        }
+
+        let distances = petgraph::algo::floyd_warshall(&graph, |_| 1).unwrap();
+
+        let nonzero_valves = self
+            .valves
+            .iter()
+            .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
+            .collect_vec();
+
+        max_flow_after_visiting(
+            &[26, 26],
+            0,
+            &["AA", "AA"],
+            &HashSet::new(),
+            &self.valves,
+            &nonzero_valves,
+            &distances,
+        )
     }
 }
 
