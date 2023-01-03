@@ -19,13 +19,16 @@
 # in the templates via {{ site.myvariable }}.
 
 title: Advent of Code 2022
-email: mokomull@gmail.com
+author: Matt Mullins
 description: >- # this means to ignore newlines until "baseurl:"
   Advent of Code 2022, built with Rust using WebAssembly!
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: mokomull
-github_username:  mokomull
+github_username: mokomull
+mastodon:
+  - username: mokomull
+    instance: macaw.social
 
 # Build settings
 theme: minima
