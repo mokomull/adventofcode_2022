@@ -10,7 +10,7 @@ layout: default
   <div class="post-content e-content" itemprop="articleBody">
     <form>
       <p>
-          <textarea id="input" cols="60" rows="10">{{ page.content }}</textarea>
+          <textarea id="input" cols="60" rows="10">{{ page.content | escape }}</textarea>
       </p>
       <p>
           <input id="runbutton" type="button" value="Run!">
