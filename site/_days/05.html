@@ -1,0 +1,65 @@
+---
+layout: default
+custom_css: day_05.css
+example: |-4
+        [D]    
+    [N] [C]    
+    [Z] [M] [P]
+    1   2   3 
+
+    move 1 from 2 to 1
+    move 3 from 1 to 3
+    move 2 from 2 to 1
+    move 1 from 1 to 2
+---
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Day {{ page.title | escape }}</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <form>
+      <p>
+        <textarea id="input" cols="60" rows="10">{{ page.example | escape }}</textarea>
+      </p>
+      <p>
+        <input id="part1button" type="button" value="Part 1!">
+        <input id="part2button" type="button" value="Part 2!">
+      </p>
+    </form>
+
+    <div id="target"></div>
+  </div>
+
+  {%- if site.disqus.shortname -%}
+    {%- include disqus_comments.html -%}
+  {%- endif -%}
+
+  <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+
+  <script type="module">
+    import init, {Day05} from "../omnibus/omnibus.js";
+    await init();
+
+    document.getElementById("part1button").addEventListener("click", function() {
+        var solution = Day05.new(document.getElementById("input").value);
+
+        var part1 = solution.make_renderer(document, document.getElementById("target"));
+        function tick() {
+            part1.tick_part1(tick);
+        }
+        tick();
+    })
+
+    document.getElementById("part2button").addEventListener("click", function () {
+        var solution = Day05.new(document.getElementById("input").value);
+
+        var renderer = solution.make_renderer(document, document.getElementById("target"));
+        function tick() {
+            renderer.tick_part2(tick);
+        }
+        tick();
+    });
+    </script>
+</article>

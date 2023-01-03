@@ -1,0 +1,45 @@
+#target {
+    height: calc((var(--count) + 2) * 2em);
+    position: relative;
+}
+
+#target > div {
+    width: calc(2em - 2px);
+    height: calc(2em - 2px);
+    box-sizing: border-box;
+    border: 2px solid black;
+    text-align: center;
+
+    position: absolute;
+    top: calc((var(--count) + 1 - var(--index)) * 2em);
+    left: calc(var(--stack) * 2em);
+}
+
+#target > div > span {
+    vertical-align: middle;
+    line-height: 2em;
+}
+
+@keyframes crane {
+    33% {
+        top: 0;
+        left: calc(var(--stack) * 2em);
+    }
+
+    67% {
+        top: 0;
+        left: calc(var(--newStack) * 2em);
+    }
+
+    to {
+        top: calc((var(--count) + 1 - var(--newIndex)) * 2em);
+        left: calc(var(--newStack) * 2em);
+    }
+}
+
+.moving {
+    animation: 1s crane both;
+    animation-delay: 100ms;
+    background-color: #500;
+    color: #fff;
+}
