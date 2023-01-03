@@ -263,6 +263,7 @@ dependencies = [
  "day_01",
  "day_02",
  "day_03",
+ "day_05",
  "day_07",
  "day_11",
  "day_12",
@@ -272,7 +273,9 @@ dependencies = [
  "day_20",
  "day_21",
  "day_23",
+ "js-sys",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]

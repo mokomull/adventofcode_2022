@@ -34,3 +34,5 @@ common_day!(day_18, Day18, u32, u32);
 common_day!(day_20, Day20, i64, i64);
 common_day!(day_21, Day21, i64, i64);
 common_day!(day_23, Day23, i32, u32);
+
+pub mod day_05;

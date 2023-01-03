@@ -6,18 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-js-sys = "0.3.60"
+js-sys = { workspace = true }
 prelude = { path = "../prelude" }
 wasm-bindgen = "0.2.83"
-
-[dependencies.web-sys]
-version = "0.3"
-features = [
-    "CssStyleDeclaration",
-    "Document",
-    "HtmlDivElement",
-    "Text",
-]
+web-sys = { workspace = true }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
