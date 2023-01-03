@@ -5,5 +5,5 @@
 layout: home
 ---
 {% for day in site.days %}
-<p><a href="{{ day.url }}">Day {{ day.title }}</a></p>
+<p><a href="{{ day.url | relative_url }}">Day {{ day.title }}</a></p>
 {% endfor %}
