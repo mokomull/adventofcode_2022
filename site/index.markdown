@@ -4,3 +4,6 @@
 
 layout: home
 ---
+{% for day in site.days %}
+<p><a href="{{ day.url }}">Day {{ day.title }}</a></p>
+{% endfor %}
