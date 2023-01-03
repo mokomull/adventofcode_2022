@@ -126,12 +126,13 @@ fn max_flow_after_visiting(
             continue;
         }
 
-        let mut location = location.to_vec();
-        location[moving] = next;
-
         // subtract 1 minute to account for turning `next` on.
         let mut time_remaining = time_remaining.to_vec();
         time_remaining[moving] = time_remaining[moving] - distances[&(location[moving], next)] - 1;
+
+        let mut location = location.to_vec();
+        location[moving] = next;
+
         max_released = std::cmp::max(
             max_released,
             max_flow_after_visiting(
