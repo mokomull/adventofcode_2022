@@ -1,0 +1,206 @@
+---
+layout: default
+custom_css: day_10.css
+example: |-4
+    addx 15
+    addx -11
+    addx 6
+    addx -3
+    addx 5
+    addx -1
+    addx -8
+    addx 13
+    addx 4
+    noop
+    addx -1
+    addx 5
+    addx -1
+    addx 5
+    addx -1
+    addx 5
+    addx -1
+    addx 5
+    addx -1
+    addx -35
+    addx 1
+    addx 24
+    addx -19
+    addx 1
+    addx 16
+    addx -11
+    noop
+    noop
+    addx 21
+    addx -15
+    noop
+    noop
+    addx -3
+    addx 9
+    addx 1
+    addx -3
+    addx 8
+    addx 1
+    addx 5
+    noop
+    noop
+    noop
+    noop
+    noop
+    addx -36
+    noop
+    addx 1
+    addx 7
+    noop
+    noop
+    noop
+    addx 2
+    addx 6
+    noop
+    noop
+    noop
+    noop
+    noop
+    addx 1
+    noop
+    noop
+    addx 7
+    addx 1
+    noop
+    addx -13
+    addx 13
+    addx 7
+    noop
+    addx 1
+    addx -33
+    noop
+    noop
+    noop
+    addx 2
+    noop
+    noop
+    noop
+    addx 8
+    noop
+    addx -1
+    addx 2
+    addx 1
+    noop
+    addx 17
+    addx -9
+    addx 1
+    addx 1
+    addx -3
+    addx 11
+    noop
+    noop
+    addx 1
+    noop
+    addx 1
+    noop
+    noop
+    addx -13
+    addx -19
+    addx 1
+    addx 3
+    addx 26
+    addx -30
+    addx 12
+    addx -1
+    addx 3
+    addx 1
+    noop
+    noop
+    noop
+    addx -9
+    addx 18
+    addx 1
+    addx 2
+    noop
+    noop
+    addx 9
+    noop
+    noop
+    noop
+    addx -1
+    addx 2
+    addx -37
+    addx 1
+    addx 3
+    noop
+    addx 15
+    addx -21
+    addx 22
+    addx -6
+    addx 1
+    noop
+    addx 2
+    addx 1
+    noop
+    addx -10
+    noop
+    noop
+    addx 20
+    addx 1
+    addx 2
+    addx 2
+    addx -6
+    addx -11
+    noop
+    noop
+    noop
+---
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Day {{ page.title | escape }}</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <form>
+      <p>
+        <textarea id="input" cols="60" rows="10">{{ page.example | escape }}</textarea>
+      </p>
+      <p>
+        <input id="runbutton" type="button" value="Run!">
+      </p>
+    </form>
+
+    <p>
+      Part 1: <span id="part1"></span>
+    </p>
+    <p>
+      Part 2:
+    </p>
+    <div id="target"></div>
+  </div>
+
+  {%- if site.disqus.shortname -%}
+    {%- include disqus_comments.html -%}
+  {%- endif -%}
+
+  <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+  <script type="module">
+      import init, {Day10} from "../omnibus/omnibus.js";
+      await init();
+
+      var target = document.getElementById("target");
+      function light(row, column) {
+          var pixel = document.createElement("div");
+          pixel.className = "lit";
+          pixel.style.setProperty("grid-row", row + 1);
+          pixel.style.setProperty("grid-column", column + 1);
+          target.appendChild(pixel);
+      }
+
+      document.getElementById("runbutton").addEventListener("click", function() {
+          while (target.firstChild) {
+              target.removeChild(target.firstChild);
+          }
+
+          var solution = Day10.new(document.getElementById("input").value);
+
+          document.getElementById("part1").innerText = solution.part1();
+          solution.part2(light);
+      })
+  </script>
+</article>
