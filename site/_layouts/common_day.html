@@ -32,7 +32,7 @@ layout: default
   <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
 
   <script type="module">
-    import init, {Day{{ page.title }}} from "./omnibus/omnibus.js";
+    import init, {Day{{ page.title }}} from "../omnibus/omnibus.js";
     await init();
 
     document.getElementById("runbutton").addEventListener("click", function() {

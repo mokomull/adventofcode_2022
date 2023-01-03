@@ -35,7 +35,7 @@ plugins:
 collections:
   days:
     output: true
-    permalink: /day_:name:output_ext
+    permalink: /day_:name/
 
 # Exclude from processing.
 # The following items will not be processed, by default.
