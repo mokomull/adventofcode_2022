@@ -3,7 +3,7 @@ use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
 use nom::multi::separated_list1;
 use nom::IResult;
-use prelude::log::debug;
+use prelude::log::{debug, info};
 use prelude::*;
 
 #[derive(Debug)]
@@ -93,7 +93,64 @@ impl Solution {
     }
 
     pub fn part2(&self) -> i32 {
-        unimplemented!()
+        let mut graph = petgraph::graphmap::DiGraphMap::new();
+        for (name, valve) in &self.valves {
+            for target in &valve.neighbors {
+                graph.add_edge(name.as_str(), target.as_str(), ());
+            }
+        }
+
+        let distances = petgraph::algo::floyd_warshall(&graph, |_| 1).unwrap();
+        debug!("computed distances:\n{distances:#?}");
+
+        let nonzero_valves = self
+            .valves
+            .iter()
+            .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
+            .collect_vec();
+
+        info!("nonzero valves: {}", nonzero_valves.len());
+
+        let mut max_flow = 0;
+
+        // choose that "myself" will visit the highest-order valve, without loss of generality; a
+        // zero in one bit represents that "myself" will take it, a one in a bit represents that
+        // "elephant" will take it
+        for i in 0..(1 << (nonzero_valves.len() - 1)) {
+            let mut myself = vec![];
+            let mut elephant = vec![];
+
+            for (j, valve) in nonzero_valves.iter().copied().enumerate() {
+                if i & (1 << j) != 0 {
+                    elephant.push(valve);
+                } else {
+                    myself.push(valve);
+                }
+
+                max_flow = std::cmp::max(
+                    max_flow,
+                    max_flow_after_visiting(
+                        26,
+                        0,
+                        "AA",
+                        &HashSet::new(),
+                        &self.valves,
+                        &myself,
+                        &distances,
+                    ) + max_flow_after_visiting(
+                        26,
+                        0,
+                        "AA",
+                        &HashSet::new(),
+                        &self.valves,
+                        &elephant,
+                        &distances,
+                    ),
+                )
+            }
+        }
+
+        max_flow
     }
 }
 
