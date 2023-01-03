@@ -82,9 +82,9 @@ impl Solution {
             .collect_vec();
 
         max_flow_after_visiting(
-            30,
+            &[30],
             0,
-            "AA",
+            &["AA"],
             &HashSet::new(),
             &self.valves,
             &nonzero_valves,
@@ -98,9 +98,9 @@ impl Solution {
 }
 
 fn max_flow_after_visiting(
-    time_remaining: i32,
+    time_remaining: &[i32],
     released: i32,
-    location: &str,
+    location: &[&str],
     already_visited: &HashSet<&str>,
     valves: &HashMap<String, Valve>,
     nonzero_valves: &[&str],
@@ -108,12 +108,15 @@ fn max_flow_after_visiting(
 ) -> i32 {
     // if we took longer than 30 minutes to get to this node, then this doesn't count as a maximum
     // path at all
-    if time_remaining < 0 {
+    if time_remaining.iter().copied().min().unwrap() < 0 {
         return 0;
     }
 
+    // move the actor with the most time remaining, since it's the "next" to move.
+    let moving = time_remaining.iter().position_max().unwrap();
+
     let mut visited = already_visited.clone();
-    visited.insert(location);
+    visited.insert(location[moving]);
     let visited = visited;
 
     let mut max_released = released;
@@ -123,14 +126,18 @@ fn max_flow_after_visiting(
             continue;
         }
 
+        let mut location = location.to_vec();
+        location[moving] = next;
+
         // subtract 1 minute to account for turning `next` on.
-        let time_remaining = time_remaining - distances[&(location, next)] - 1;
+        let mut time_remaining = time_remaining.to_vec();
+        time_remaining[moving] = time_remaining[moving] - distances[&(location[moving], next)] - 1;
         max_released = std::cmp::max(
             max_released,
             max_flow_after_visiting(
-                time_remaining,
-                released + (time_remaining * valves[next].flow_rate as i32),
-                next,
+                &time_remaining,
+                released + (time_remaining[moving] * valves[next].flow_rate as i32),
+                &location,
                 &visited,
                 valves,
                 nonzero_valves,
@@ -139,7 +146,8 @@ fn max_flow_after_visiting(
         );
     }
 
-    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, already visited {already_visited:?} -> {max_released}");
+    debug!("moved {moving}: max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, already visited {already_visited:?} -> {max_released}",
+location = location[moving], time_remaining = time_remaining[moving]);
 
     max_released
 }
