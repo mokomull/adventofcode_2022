@@ -1,6 +1,6 @@
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsValue;
 
 use Move::*;
 
@@ -34,12 +34,10 @@ impl TryFrom<&str> for Move {
     }
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     directions: Vec<Move>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Result<Solution, JsValue> {
         init();
