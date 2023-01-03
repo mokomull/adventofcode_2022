@@ -3,16 +3,14 @@ use std::collections::VecDeque;
 use js_sys::Function;
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::{prelude::*, JsCast};
+use wasm_bindgen::{JsCast, JsValue};
 use web_sys::{Document, HtmlDivElement, HtmlElement, Text};
 
-#[wasm_bindgen]
 pub struct Solution {
     initial: Vec<Vec<u8>>, // stacks of crates from the bottom up
     steps: Vec<(usize, usize, usize)>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();
@@ -132,7 +130,6 @@ impl Solution {
     }
 }
 
-#[wasm_bindgen]
 pub struct Renderer {
     stacks: Vec<usize>,                               // height of each stack
     crate_divs: HashMap<(usize, usize), HtmlElement>, // (stack id, height) => element representing a crate
@@ -146,7 +143,6 @@ pub struct Renderer {
     trigger_count: usize,
 }
 
-#[wasm_bindgen]
 impl Renderer {
     // despite all the storage of from/to being one-indexed, do_move is called with *zero*-indexed
     // stack ids.

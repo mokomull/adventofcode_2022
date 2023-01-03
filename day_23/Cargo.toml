@@ -9,7 +9,3 @@ edition = "2021"
 itertools = "0.10"
 nom = "7.1.1"
 prelude = { path = "../prelude" }
-wasm-bindgen = "0.2.83"
-
-[lib]
-crate-type = ["cdylib", "rlib"]

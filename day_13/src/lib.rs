@@ -6,7 +6,6 @@ use nom::multi::separated_list0;
 use nom::IResult;
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 use Packet::*;
 
@@ -72,12 +71,10 @@ impl Ord for Packet {
     }
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     packets: Vec<(Packet, Packet)>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

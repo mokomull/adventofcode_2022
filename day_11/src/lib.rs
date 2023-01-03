@@ -1,6 +1,5 @@
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 #[derive(Clone)]
 enum Operation {
@@ -20,12 +19,10 @@ struct Monkey {
     false_target: usize,
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     monkeys: Vec<Monkey>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

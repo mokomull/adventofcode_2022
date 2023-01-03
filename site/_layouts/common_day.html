@@ -1,0 +1,45 @@
+---
+layout: default
+---
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Day {{ page.title | escape }}</h1>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <form>
+      <p>
+          <textarea id="input" cols="60" rows="10">{{ page.content | escape }}</textarea>
+      </p>
+      <p>
+          <input id="runbutton" type="button" value="Run!">
+      </p>
+    </form>
+
+    <p>
+        Part 1: <span id="part1"></span>
+    </p>
+    <p>
+        Part 2: <span id="part2"></span>
+    </p>
+  </div>
+
+  {%- if site.disqus.shortname -%}
+    {%- include disqus_comments.html -%}
+  {%- endif -%}
+
+  <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+
+  <script type="module">
+    import init, {Day{{ page.title }}} from "../omnibus/omnibus.js";
+    await init();
+
+    document.getElementById("runbutton").addEventListener("click", function() {
+        var solution = Day{{ page.title }}.new(document.getElementById("input").value);
+
+        document.getElementById("part1").innerText = solution.part1();
+        document.getElementById("part2").innerText = solution.part2();
+    })
+  </script>
+</article>

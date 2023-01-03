@@ -3,11 +3,9 @@ use std::collections::{BTreeSet, VecDeque};
 use itertools::MinMaxResult;
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 use Direction::*;
 
-#[wasm_bindgen]
 pub struct Solution {
     elves: HashSet<(i32, i32)>,
 }
@@ -59,7 +57,6 @@ impl Direction {
     }
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();

@@ -1,13 +1,10 @@
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
 pub struct Solution {
     input: Vec<i64>,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Solution {
         init();

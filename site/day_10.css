@@ -1,0 +1,11 @@
+#target {
+    display: grid;
+    grid-template-columns: repeat(40, 1em);
+    grid-template-rows: repeat(6, 1em);
+    background-color: #222;
+    width: min-content;
+}
+
+.lit {
+    background-color: green;
+}

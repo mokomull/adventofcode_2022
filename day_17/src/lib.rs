@@ -4,7 +4,6 @@ use std::ops::ControlFlow;
 
 use prelude::log::debug;
 use prelude::*;
-use wasm_bindgen::prelude::*;
 
 use RockType::*;
 
@@ -133,12 +132,10 @@ impl Rock {
     }
 }
 
-#[wasm_bindgen]
 pub struct Solution {
     input: String,
 }
 
-#[wasm_bindgen]
 impl Solution {
     pub fn new(input: &str) -> Self {
         init();
