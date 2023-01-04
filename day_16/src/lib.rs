@@ -1,3 +1,5 @@
+use std::collections::{hash_map, BTreeSet};
+
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::alpha1;
@@ -81,7 +83,14 @@ impl Solution {
             .filter_map(|(name, valve)| (valve.flow_rate > 0).then_some(name.as_str()))
             .collect();
 
-        max_flow_after_visiting(30, 0, "AA", &nonzero_valves, &self.valves, &distances)
+        max_flow_after_visiting(
+            30,
+            "AA",
+            &nonzero_valves,
+            &self.valves,
+            &distances,
+            &mut Default::default(),
+        )
     }
 
     pub fn part2(&self) -> i32 {
@@ -108,9 +117,10 @@ impl Solution {
         // choose that "myself" will visit the highest-order valve, without loss of generality; a
         // zero in one bit represents that "myself" will take it, a one in a bit represents that
         // "elephant" will take it
+        let mut memoized = Default::default();
         for i in 0..(1 << (nonzero_valves.len() - 1)) {
-            let mut myself = HashSet::new();
-            let mut elephant = HashSet::new();
+            let mut myself = BTreeSet::new();
+            let mut elephant = BTreeSet::new();
 
             for (j, valve) in nonzero_valves.iter().copied().enumerate() {
                 if i & (1 << j) != 0 {
@@ -123,18 +133,18 @@ impl Solution {
                     max_flow,
                     max_flow_after_visiting(
                         26,
-                        0,
                         "AA",
                         &myself,
                         &self.valves,
                         &distances,
+                        &mut memoized,
                     ) + max_flow_after_visiting(
                         26,
-                        0,
                         "AA",
                         &elephant,
                         &self.valves,
                         &distances,
+                        &mut memoized,
                     ),
                 )
             }
@@ -144,13 +154,13 @@ impl Solution {
     }
 }
 
-fn max_flow_after_visiting(
+fn max_flow_after_visiting<'a>(
     time_remaining: i32,
-    released: i32,
-    location: &str,
-    to_visit: &HashSet<&str>,
+    location: &'a str,
+    to_visit: &BTreeSet<&'a str>,
     valves: &HashMap<String, Valve>,
     distances: &HashMap<(&str, &str), i32>,
+    memoized: &mut HashMap<(i32, &'a str, BTreeSet<&'a str>), i32>,
 ) -> i32 {
     // if we took longer than 30 minutes to get to this node, then this doesn't count as a maximum
     // path at all
@@ -162,25 +172,33 @@ fn max_flow_after_visiting(
     to_visit.remove(location);
     let to_visit = to_visit;
 
-    let mut max_released = released;
+    let entry = memoized.entry((time_remaining, location, to_visit));
+    let to_visit = match entry {
+        hash_map::Entry::Occupied(occupied) => return *occupied.get(),
+        hash_map::Entry::Vacant(vacant) => vacant.into_key().2,
+    };
+
+    let mut max_released = 0;
 
     for &next in &to_visit {
         // subtract 1 minute to account for turning `next` on.
         let time_remaining = time_remaining - distances[&(location, next)] - 1;
         max_released = std::cmp::max(
             max_released,
-            max_flow_after_visiting(
-                time_remaining,
-                released + (time_remaining * valves[next].flow_rate as i32),
-                next,
-                &to_visit,
-                valves,
-                distances,
-            ),
+            (time_remaining * valves[next].flow_rate as i32)
+                + max_flow_after_visiting(
+                    time_remaining,
+                    next,
+                    &to_visit,
+                    valves,
+                    distances,
+                    memoized,
+                ),
         );
     }
 
-    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, released={released}, remaining to visit {to_visit:?} -> {max_released}");
+    debug!("max_flow_after_visiting {location}: time_remaining={time_remaining}, remaining to visit {to_visit:?} -> {max_released}");
 
+    memoized.insert((time_remaining, location, to_visit), max_released);
     max_released
 }
